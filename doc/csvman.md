@@ -1,6 +1,4 @@
-csvman
-======
-
+# csvman
 Command-line shell to manipulate delimited files.
 
 ## Introduction
