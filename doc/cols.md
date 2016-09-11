@@ -34,7 +34,7 @@ The following table describes all options in detail.
 
 Option | Description
 ---------------|------------
--h             | Print help message
+-h             | Print this help message.
 -c, --colnames | Display the elements in the header line of the file as a numbered list. Numbering starts at 1 unless -0 is specified.
 -m, --matches  | Print the number of lines whose column count matches the number of elements in the header line.
 -0             | Number column names starting at 0 instead of 1.
