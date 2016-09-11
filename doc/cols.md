@@ -44,4 +44,24 @@ Option | Description
 
 ## Examples
 
-If the file *test.csv* contains the following data:
+The file [test.csv](test.csv) contains the following data:
+
+Name | Age |Salary
+-----|-----|------
+Alice|42|65000
+Bob|37|58000
+Charlie|45|67000
+
+```
+$ cols.py test.csv 
+test.csv: 3 columns.
+
+$ cols.py -c test.csv 
+test.csv: 3 columns.
+  1 = Name
+  2 = Age
+  3 = Salary
+
+$ cols.py -m test.csv 
+test.csv: 3 columns, 3/3 matching.
+```

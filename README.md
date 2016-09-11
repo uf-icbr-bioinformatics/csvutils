@@ -6,8 +6,8 @@ follow the links in the table below for a description of each utility.
 
 Name                       | Description
 ---------------------------|--------------
-[csvtoxls.py](csvtoxls.md) | Convert CSV files to Excel format.
-[csvman.py](csvman.md)     | Command-line shell to manipulate delimited files.
-[cols.py](cols.md)         | Report number of columns in one or more CSV files.
-[colx.py](colx.md)         | Find intersection among columns in one or more CSV files.
+[csvtoxls.py](doc/csvtoxls.md) | Convert CSV files to Excel format.
+[csvman.py](doc/csvman.md)     | Command-line shell to manipulate delimited files.
+[cols.py](doc/cols.md)         | Report number of columns in one or more CSV files.
+[colx.py](doc/colx.md)         | Find intersection among columns in one or more CSV files.
 
