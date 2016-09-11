@@ -26,7 +26,7 @@ If no filename is specified, *cols.py* will read its input from standard input.
 
 ## Syntax
 
-```python
+```
   cols.py [-h] [-c] [-0] [-m] [-d D] [-s N] [-S N] files...
 ```
 
@@ -62,6 +62,27 @@ test.csv: 3 columns.
   2 = Age
   3 = Salary
 
+$ cols.py -0 -c test.csv 
+test.csv: 3 columns.
+  0 = Name
+  1 = Age
+  2 = Salary
+
+$ cols.py -c -s 3 test.csv 
+test.csv: 3 columns.
+  1 = Bob
+  2 = 37
+  3 = 58000
+
+$ ../cols.py -c -S 3 test.csv 
+test.csv: 3 columns.
+  Name = Charlie
+  Age = 45
+  Salary = 67000
+
 $ cols.py -m test.csv 
 test.csv: 3 columns, 3/3 matching.
 ```
+
+## Credits
+**csvtoxls.py** is (c) 2016, A. Riva, <A href='http://dibig.biotech.ufl.edu'>DiBiG</A>, <A href='http://biotech.ufl.edu/'>ICBR Bioinformatics</A>, University of Florida
