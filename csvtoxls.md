@@ -1,4 +1,4 @@
-csvtoxls
+# csvtoxls
 ========
 
 Convert csv files to xlsx
@@ -55,6 +55,7 @@ some details of the conversion:
 
 Option       | Description
 -------------|------------
+-q           | quick mode: sets sheet name to filename, adds -firstrowhdr
 -name S      | set the sheet name to S
 -delim D     | set the delimiter to D. Possible values are: 'tab', 'space', or a single character (default: tab).
 -width N     | set the width of all columns to N
