@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+###################################################
+#
+# (c) 2016, Alberto Riva, ariva@ufl.edu
+# DiBiG, ICBR Bioinformatics, University of Florida
+#
+# See the LICENSE file for license information.
+###################################################
+
 import sys
 import gzip
 import os.path

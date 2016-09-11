@@ -1,5 +1,13 @@
 #!/usr/bin/env python
 
+###################################################
+#
+# (c) 2016, Alberto Riva, ariva@ufl.edu
+# DiBiG, ICBR Bioinformatics, University of Florida
+#
+# See the LICENSE file for license information.
+###################################################
+
 import sys
 import os.path
 
@@ -119,7 +127,7 @@ Delimiter is tab by default, can be changed with -d option. Numbering starts
 at 1, unless -0 is specified, in which case it is zero-based.
 
 The program examines the first row by default, or the line specified with the
--s option If -S is used instead of -s, the program prints the contents of the
+-s option. If -S is used instead of -s, the program prints the contents of the
 specified line using the contents of the first line as column names instead of
 progressive numbers.
 """)

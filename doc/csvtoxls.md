@@ -1,6 +1,4 @@
 # csvtoxls
-========
-
 Convert csv files to xlsx
 
 ## Introduction
