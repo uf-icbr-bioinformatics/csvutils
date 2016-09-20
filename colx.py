@@ -110,7 +110,7 @@ class Colx():
         return n
 
     def reportMulti(self, multimap, idx):
-        print self.multidc
+        # print self.multidc
         for i in range(3, idx): # we don't care about 1 and 2
             if not i in multimap:
                 n = 0
@@ -169,6 +169,7 @@ def main(C, args):
     for a in args:
         if next == '-o':
             C.outfile = a
+            next = ""
         elif next == '-c':
             if a == 's':
                 C.delchar = " "
@@ -176,8 +177,10 @@ def main(C, args):
                 C.delchar = "\t"
             else:
                 C.delchar = a[0]
+            next = ""
         elif next == '-g':
             C.ignchar = a[0]
+            next = ""
         elif a in ['-o', '-c', '-g']:
             next = a
         elif a == '-w':

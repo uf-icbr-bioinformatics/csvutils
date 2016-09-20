@@ -9,6 +9,7 @@
 ###################################################
 
 import sys
+import csv
 import os.path
 
 DELIMITER = '\t'
@@ -64,19 +65,23 @@ def processFromStream(filename, f):
     # print "skipping to row {}".format(ROWNUM)
     hdr = []
     row = []
-
+    reader = csv.reader(f, delimiter=DELIMITER, quotechar='"')
     # print (MODE, ROWNUM, DELIMITER, SKIP, FIRSTHDR, RAW)
 
     if FIRSTHDR:
-        hdr = f.readline().rstrip("\n").split(DELIMITER)
+        #hdr = f.readline().rstrip("\n").split(DELIMITER)
+        hdr = reader.next()
 
     for i in range(1, ROWNUM):
-        f.readline()
+        #f.readline()
+        reader.next()
 
     while True:
-        row = f.readline().rstrip("\n").split(DELIMITER)
+        #row = f.readline().rstrip("\n").split(DELIMITER)
+        row = reader.next()
         if SKIP == None or hdr[0][0] != SKIP:
             break
+
     ncols = len(row)
     if MODE == 'default':
         sys.stderr.write("{}: {} columns.\n".format(filename, ncols))
