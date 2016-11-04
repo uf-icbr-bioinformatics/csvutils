@@ -10,6 +10,7 @@
 
 import sys
 import csv
+import codecs
 import os.path
 import importlib
 import xlsxwriter
@@ -26,6 +27,19 @@ FORMATS = {}
 
 # List of Csv objects (each one represents a csv file, converted to a separate sheet)
 CSVS = []
+
+# Generator to read UTF-8 data (from Python docs)
+
+def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
+    # csv.py doesn't do Unicode; encode temporarily as UTF-8:
+    csv_reader = csv.reader(utf_8_encoder(unicode_csv_data), dialect=dialect, **kwargs)
+    for row in csv_reader:
+        # decode UTF-8 back to Unicode, cell by cell:
+        yield [unicode(cell, 'utf-8') for cell in row]
+
+def utf_8_encoder(unicode_csv_data):
+    for line in unicode_csv_data:
+        yield line.encode('utf-8')
 
 # Csv class, representing an input csv file with its options.
 class Csv():
@@ -62,8 +76,11 @@ first column will be set to bold."""
 
         maxrow = 0
         maxcol = 0
-        with open(self.csvfile, 'rb') as f:
-            reader = csv.reader(f, delimiter=self.delim)
+        #with open(self.csvfile, 'rb') as f:
+        try:
+            f = codecs.open(self.csvfile, 'r', 'utf-8')
+            #reader = csv.reader(f, delimiter=self.delim)
+            reader = unicode_csv_reader(f, delimiter=self.delim)
             for r, row in enumerate(reader):
                 if r > maxrow:
                     maxrow = r
@@ -74,6 +91,8 @@ first column will be set to bold."""
                         ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
                     else:
                         ws.write(r + self.firstrow, c + self.firstcol, col)
+        finally:
+            f.close()
         return (maxrow + 1, maxcol + 1)
 
 def decodeDelimiter(d):
