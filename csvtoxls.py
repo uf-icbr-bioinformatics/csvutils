@@ -50,7 +50,7 @@ class Csv():
     def setQuick(self):
         """Set sheet name to basename of filename, if not specified, and firstrowhdr."""
         if self.name == None:
-            self.name = os.path.splitext(self.csvfile)[0]
+            self.name = os.path.splitext(self.csvfile)[0][:30] # limit to the first 30 chars
         if not 0 in self.rowhdr:
             self.rowhdr.append(0)
 

@@ -25,6 +25,7 @@ class Colx():
     quiet = False
     sort = False                # Value is a string, if it contains 'n', sort numerically, if it contains 'r', reverse.
     multi = False
+    case = False                # If True, case insensitive.
     
     def __init__(self):
         self.current = set()
@@ -43,6 +44,8 @@ class Colx():
                     e = parsed[col]
                     if e != '':
                         n += 1
+                        if self.case:
+                            e = e.upper()
                         if self.isFirst:
                             self.current.add(e)
                         elif self.mode in ['i', 'd']:
@@ -103,6 +106,8 @@ class Colx():
                     e = parsed[col]
                     if e != '':
                         n += 1
+                        if self.case:
+                            e = e.upper()
                         if e in m:
                             m[e] = m[e] | idx
                         else:
@@ -160,6 +165,7 @@ otherwise."""
     if os.path.isfile(fs):
         return (fs, c-1)
     else:
+        sys.stderr.write("Error: file {} does not exist or is not readable.\n".format(fs))
         return False
     
 def main(C, args):
@@ -191,6 +197,8 @@ def main(C, args):
             C.sort = a[1:]
         elif a == '-m':
             C.multi = True
+        elif a == '-f':
+            C.case = True
         elif a in ['-i', '-d', '-u']:
             C.mode = a[1:]
         else:
@@ -242,6 +250,8 @@ the final output are printed to standard error.
                sort numerically instead. Add an 'r' to reverse sort order.
   -c char    | Use 'char' as delimiter. Use 's' for space, 't' for tab (default).
   -g char    | Lines starting with 'char' will be ignored (default: #).
+  -f         | Fold case (ie, do case-insensitive comparison). Note: this currently
+               converts all items to uppercase.
   -m         | Enable 'multi' mode. Will compute all pairwise intersections between
                all input columns. Disables -i, -d, -u.
   -i         | Intersection mode. Result will consist of the intersection of all
