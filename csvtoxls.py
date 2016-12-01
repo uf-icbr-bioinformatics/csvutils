@@ -113,7 +113,7 @@ def setup(args):
             usage()
             return None
     else:
-        return setupFromCmdline(args, n)
+        return setupFromCmdline(args)
 
 def setupWin():
     c = None
@@ -133,7 +133,68 @@ def setupWin():
         CSVS.append(c)
     return xlsxfile
 
-def setupFromCmdline(args, n):
+def setPar(c, attr, value, append=False):
+    if c:
+        if append:
+            getattr(c, attr).append(value)
+        else:
+            setattr(c, attr, value)
+    else:
+        print "Error: sheet options specified before csv file name."
+        sys.exit(-1)
+
+def setupFromCmdline(args):
+    global CSVS
+    OPTIONS = ['-name', '-width', '-delim', '-firstrow', '-firstcol', '-rowhdr', '-colhdr', '-firstrowhdr', '-firstcolhdr']
+    quick = False
+    c = None
+    xlsxfile = None
+    w = ""
+
+    for a in args[1:]:
+        if a == '-q':
+            print "Quick mode enabled"
+            quick = True
+        elif a in OPTIONS:
+            w = a
+        elif w == "-name":
+            setPar(c, 'name', a)
+            w = ""
+        elif w == "-width":
+            setPar(c, 'width', int(a))
+            w = ""
+        elif w == "-delim":
+            setPar(c, 'delim', decodeDelimiter(a))
+            w = ""
+        elif w == "-firstrow":
+            setPar(c, 'firstrow', int(a) - 1)
+            w = ""
+        elif w == "-firstcol":
+            setPar(c, 'firstcol', int(a) - 1)
+            w = ""
+        elif w == "-rowhdr":
+            setPar(c, 'rowhdr', int(a) - 1, True)
+            w = ""
+        elif w == "-colhdr":
+            setPar(c, 'colhdr', int(a) - 1, True)
+            w = ""
+        elif w == "-firstrowhdr":
+            setPar(c, 'rowhdr', 0, True)
+            w = ""
+        elif w == "-firstcolhdr":
+            setPar(c, 'colhdr', 0, True)
+            w = ""
+        elif xlsxfile:
+            c = Csv(a)
+            CSVS.append(c)
+        else:
+            xlsxfile = a
+    if quick:
+        for c in CSVS:
+            c.setQuick()
+    return xlsxfile
+
+def setupFromCmdlineOld(args, n):
     i = 2
     c = None
     quick = False
@@ -221,6 +282,7 @@ Full documentation and source code are available on GitHub:
 def main(xlsxfile):
     global FORMATS
 
+    print "Writing XLSX file {}".format(xlsxfile)
     workbook = xlsxwriter.Workbook(xlsxfile, {'strings_to_numbers': True})
     workbook.set_properties({'author': 'A. Riva, ariva@ufl.edu', 'company': 'DiBiG - ICBR Bioinformatics'}) # these should be read from conf or command-line
     FORMATS['bold'] = workbook.add_format({'bold': 1})

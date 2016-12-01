@@ -14,6 +14,7 @@ import os.path
 
 DELIMITER = '\t'
 MODE = 'default'
+RSTYLE = False
 ZERO = False
 FIRSTHDR = False                # First row is header regardless of ROWNUM
 ROWNUM = 1
@@ -23,12 +24,14 @@ INFILES = []
 
 def parseOptions(args):
     global MODE
+    global RSTYLE
     global ZERO
     global DELIMITER
     global ROWNUM
     global FIRSTHDR
     global SKIP
     global RAW
+
     next = ""
     for a in args:
         if next == "-d":
@@ -58,6 +61,8 @@ def parseOptions(args):
             RAW = True
         elif a == '-0':
             ZERO = True
+        elif a == '-R':
+            RSTYLE = True
         else:
             INFILES.append(a)
 
@@ -71,6 +76,9 @@ def processFromStream(filename, f):
     if FIRSTHDR:
         #hdr = f.readline().rstrip("\n").split(DELIMITER)
         hdr = reader.next()
+
+    if RSTYLE:
+        hdr = ["<<RowNum>>"] + hdr
 
     for i in range(1, ROWNUM):
         #f.readline()
