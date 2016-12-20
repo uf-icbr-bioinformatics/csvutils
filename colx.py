@@ -34,8 +34,9 @@ class Colx():
         self.isFirst = True
 
     def addColumn(self, filename, col):
-        # print "entering: {}".format(self.current)
+        # print "entering: {}".format(len(self.current))
         n = 0
+        self.newlist = set()
         fn_open = gzip.open if filename.endswith('.gz') else open
         with fn_open(filename, "r") as f:
             for line in f:
@@ -43,23 +44,24 @@ class Colx():
                     parsed = line.rstrip("\r\n").split(self.delchar)
                     e = parsed[col]
                     if e != '':
-                        n += 1
                         if self.case:
                             e = e.upper()
-                        if self.isFirst:
-                            self.current.add(e)
-                        elif self.mode in ['i', 'd']:
-                            self.newlist.add(e)
-                        else:
-                            self.current.add(e)
-        if not self.isFirst:
-            if self.mode == 'i':
-                self.current = self.current & self.newlist
-                self.newlist = set()
-            elif self.mode == 'd':
-                self.current = self.current - self.newlist
-                self.newlist = set()
-        # print "exiting: {}".format(self.current)
+                        self.newlist.add(e)
+
+        n = len(self.newlist)
+
+        if self.isFirst:
+            self.current = self.newlist
+        elif self.mode == 'i':
+            self.current = self.current & self.newlist
+        elif self.mode == 'd':
+            self.current = self.current - self.newlist
+        elif self.mode == 'u':
+            for x in self.newlist:
+                self.current.add(x)
+
+        self.newlist = set()
+        # print "exiting: {}".format(len(self.current))
         return n
 
     def addColumnOld(self, filename, col):

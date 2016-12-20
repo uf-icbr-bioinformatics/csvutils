@@ -151,6 +151,9 @@ def setupFromCmdline(args):
     xlsxfile = None
     w = ""
 
+    if '-h' in args:
+        usage()
+
     for a in args[1:]:
         if a == '-q':
             print "Quick mode enabled"
@@ -198,6 +201,9 @@ def setupFromCmdlineOld(args, n):
     i = 2
     c = None
     quick = False
+
+    if '-h' in args:
+        usage()
 
     xlsxfile = args[1]
 
@@ -278,6 +284,7 @@ Full documentation and source code are available on GitHub:
 
 (c) 2014, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
 """.format(prog, prog)
+    sys.exit(-1)
 
 def main(xlsxfile):
     global FORMATS

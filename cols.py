@@ -128,7 +128,7 @@ def processOneFile(filename):
         sys.stderr.write("{}: File not found.\n".format(filename))
 
 def usage():
-    sys.stderr.write("""Usage: cols.py [-h] [-c] [-0] [-m] [-d D] [-s N] files...
+    sys.stderr.write("""Usage: cols.py [-h] [-c] [-0] [-m] [-d D] [-s N] [-R] files...
 
 Examine one or more delimited files and report one of the following:
 
@@ -143,6 +143,9 @@ The program examines the first row by default, or the line specified with the
 -s option. If -S is used instead of -s, the program prints the contents of the
 specified line using the contents of the first line as column names instead of
 progressive numbers.
+
+If -R is specified, assume the header is in R style (ie, the header for the first
+column is missing).
 """)
 
 if __name__ == "__main__":
