@@ -150,7 +150,8 @@ def setPar(c, attr, value, append=False):
 
 def setupFromCmdline(args):
     global CSVS
-    OPTIONS = ['-name', '-n', '-width', '-w', '-delim', '-d', '-firstrow', '-firstcol', '-rowhdr', '-colhdr', '-firstrowhdr', '-firstcolhdr']
+    OPTIONS = ['-n', '-name', '-w', '-width', '-d', '-delim', '-fr', '-firstrow', '-fc', '-firstcol', '-r', '-rowhdr', '-c', '-colhdr', 
+               '-R', '-firstrowhdr', '-C', '-firstcolhdr']
     quick = False
     c = None
     xlsxfile = None
@@ -160,12 +161,12 @@ def setupFromCmdline(args):
         usage()
 
     for a in args[1:]:
-        if a == '-q':
+        if a in ['-q', "-quick"]:
             sys.stderr.write("Quick mode enabled.\n")
             quick = True
-        elif a == "-firstrowhdr":
+        elif a in ["-R", "-firstrowhdr"]:
             setPar(c, 'rowhdr', 0, True)
-        elif a == "-firstcolhdr":
+        elif a == ["-C", "-firstcolhdr"]:
             setPar(c, 'colhdr', 0, True)
         elif a in OPTIONS:
             next = a
@@ -179,16 +180,16 @@ def setupFromCmdline(args):
         elif next in ["-delim", "-d"]:
             setPar(c, 'delim', decodeDelimiter(a))
             next = ""
-        elif next == "-firstrow":
+        elif next in ["-fr", "-firstrow"]:
             setPar(c, 'firstrow', int(a) - 1)
             next = ""
-        elif next == "-firstcol":
+        elif next in ["-fc", "-firstcol"]:
             setPar(c, 'firstcol', int(a) - 1)
             next = ""
-        elif next == "-rowhdr":
+        elif next in ["-r", "-rowhdr"]:
             setPar(c, 'rowhdr', int(a) - 1, True)
             next = ""
-        elif next == "-colhdr":
+        elif next in ["-c", "-colhdr"]:
             setPar(c, 'colhdr', int(a) - 1, True)
             next = ""
         elif a[0] == '-':
@@ -218,22 +219,22 @@ Each .csv file appearing on the command line is written to outfile.xlsx as a sep
 sheet. The csv file name may be followed by one or more options, that apply only to that
 file. Valid options are:
 
-  -q                  - quick mode: sets sheet name to filename, adds -firstrowhdr
-  -n S | -name S      - set the sheet name to S.
-  -d D | -delim D     - file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
-  -w N | -width N     - set the width of all columns to N.
-  -firstrow N         - place the first row of the csv file in row N of the sheet (default: 1).
-  -firstcol N         - place the first column of the csv file in column N of the sheet (default: 1).
-  -rowhdr N           - format row N of the csv file as header (bold). This option may appear multiple times.
-  -colhdr N           - format column N of the csv file as header (bold). This option may appear multiple times.
-  -firstrowhdr        - equivalent to -rowhdr 1 (first row will be bold).
-  -firstcolhdr        - equivalent to -colhdr 1 (first column will be bold).
+  -q    | -quick       - quick mode: sets sheet name to filename, adds -firstrowhdr
+  -n S  | -name S      - set the sheet name to S.
+  -d D  | -delim D     - file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
+  -w N  | -width N     - set the width of all columns to N.
+  -fr N | -firstrow N  - place the first row of the csv file in row N of the sheet (default: 1).
+  -fc N | -firstcol N  - place the first column of the csv file in column N of the sheet (default: 1).
+  -r N  | -rowhdr N    - format row N of the csv file as header (bold). This option may appear multiple times.
+  -c N  | -colhdr N    - format column N of the csv file as header (bold). This option may appear multiple times.
+  -R    | -firstrowhdr - equivalent to -rowhdr 1 (first row will be bold).
+  -C    | -firstcolhdr - equivalent to -colhdr 1 (first column will be bold).
 
 Full documentation and source code are available on GitHub:
 
   http://github.com/albertoriva/cvstoxls/
 
-(c) 2014, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
+(c) 2014-2017, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
 """.format(prog, prog)
     sys.exit(-1)
 
