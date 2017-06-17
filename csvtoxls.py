@@ -64,7 +64,8 @@ class Csv():
     def setQuick(self):
         """Set sheet name to basename of filename, if not specified, and firstrowhdr."""
         if self.name == None:
-            self.name = os.path.splitext(self.csvfile)[0][:30] # limit to the first 30 chars
+            fname = os.path.split(self.csvfile)[1]
+            self.name = os.path.splitext(fname)[0][:30] # limit to the first 30 chars
         if not 0 in self.rowhdr:
             self.rowhdr.append(0)
 
@@ -77,23 +78,27 @@ first column will be set to bold."""
         maxrow = 0
         maxcol = 0
         #with open(self.csvfile, 'rb') as f:
-        try:
-            f = codecs.open(self.csvfile, 'r', 'utf-8')
-            #reader = csv.reader(f, delimiter=self.delim)
-            reader = unicode_csv_reader(f, delimiter=self.delim)
-            for r, row in enumerate(reader):
-                if r > maxrow:
-                    maxrow = r
-                for c, col in enumerate(row):
-                    if c > maxcol:
-                        maxcol = c
-                    if (r in self.rowhdr) or (c in self.colhdr):
-                        ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
-                    else:
-                        ws.write(r + self.firstrow, c + self.firstcol, col)
-        finally:
-            f.close()
-        return (maxrow + 1, maxcol + 1)
+        if os.path.isfile(self.csvfile):
+            try:
+                f = codecs.open(self.csvfile, 'r', 'utf-8')
+                #reader = csv.reader(f, delimiter=self.delim)
+                reader = unicode_csv_reader(f, delimiter=self.delim)
+                for r, row in enumerate(reader):
+                    if r > maxrow:
+                        maxrow = r
+                    for c, col in enumerate(row):
+                        if c > maxcol:
+                            maxcol = c
+                        if (r in self.rowhdr) or (c in self.colhdr):
+                            ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
+                        else:
+                            ws.write(r + self.firstrow, c + self.firstcol, col)
+            finally:
+                f.close()
+                return (maxrow + 1, maxcol + 1)
+        else:
+            sys.stderr.write("Warning: file {} does not exist or is not readable.\n".format(self.csvfile))
+            return (0, 0)
 
 def decodeDelimiter(d):
     if d == 'tab':
@@ -140,143 +145,89 @@ def setPar(c, attr, value, append=False):
         else:
             setattr(c, attr, value)
     else:
-        print "Error: sheet options specified before csv file name."
+        sys.stderr.write("Error: sheet options specified before csv file name.\n")
         sys.exit(-1)
 
 def setupFromCmdline(args):
     global CSVS
-    OPTIONS = ['-name', '-width', '-delim', '-firstrow', '-firstcol', '-rowhdr', '-colhdr', '-firstrowhdr', '-firstcolhdr']
+    OPTIONS = ['-name', '-n', '-width', '-w', '-delim', '-d', '-firstrow', '-firstcol', '-rowhdr', '-colhdr', '-firstrowhdr', '-firstcolhdr']
     quick = False
     c = None
     xlsxfile = None
-    w = ""
+    next = ""
 
     if '-h' in args:
         usage()
 
     for a in args[1:]:
         if a == '-q':
-            print "Quick mode enabled"
+            sys.stderr.write("Quick mode enabled.\n")
             quick = True
-        elif a in OPTIONS:
-            w = a
-        elif w == "-name":
-            setPar(c, 'name', a)
-            w = ""
-        elif w == "-width":
-            setPar(c, 'width', int(a))
-            w = ""
-        elif w == "-delim":
-            setPar(c, 'delim', decodeDelimiter(a))
-            w = ""
-        elif w == "-firstrow":
-            setPar(c, 'firstrow', int(a) - 1)
-            w = ""
-        elif w == "-firstcol":
-            setPar(c, 'firstcol', int(a) - 1)
-            w = ""
-        elif w == "-rowhdr":
-            setPar(c, 'rowhdr', int(a) - 1, True)
-            w = ""
-        elif w == "-colhdr":
-            setPar(c, 'colhdr', int(a) - 1, True)
-            w = ""
-        elif w == "-firstrowhdr":
+        elif a == "-firstrowhdr":
             setPar(c, 'rowhdr', 0, True)
-            w = ""
-        elif w == "-firstcolhdr":
+        elif a == "-firstcolhdr":
             setPar(c, 'colhdr', 0, True)
-            w = ""
+        elif a in OPTIONS:
+            next = a
+        elif next in ["-name", "-n"]:
+            a = a[:min(len(a), 30)] # excel sheet names can't be longer than 31 characters...
+            setPar(c, 'name', a)
+            next = ""
+        elif next == ["-width", "-w"]:
+            setPar(c, 'width', int(a))
+            next = ""
+        elif next in ["-delim", "-d"]:
+            setPar(c, 'delim', decodeDelimiter(a))
+            next = ""
+        elif next == "-firstrow":
+            setPar(c, 'firstrow', int(a) - 1)
+            next = ""
+        elif next == "-firstcol":
+            setPar(c, 'firstcol', int(a) - 1)
+            next = ""
+        elif next == "-rowhdr":
+            setPar(c, 'rowhdr', int(a) - 1, True)
+            next = ""
+        elif next == "-colhdr":
+            setPar(c, 'colhdr', int(a) - 1, True)
+            next = ""
+        elif a[0] == '-':
+            sys.stderr.write("Unrecognized option: {}\n".format(a))
         elif xlsxfile:
             c = Csv(a)
             CSVS.append(c)
         else:
             xlsxfile = a
+    # for c in CSVS:
+    #     c.dump()
     if quick:
         for c in CSVS:
             c.setQuick()
     return xlsxfile
 
-def setupFromCmdlineOld(args, n):
-    i = 2
-    c = None
-    quick = False
-
-    if '-h' in args:
-        usage()
-
-    xlsxfile = args[1]
-
-    while True:
-        if i >= n:
-            if quick:
-                for c in CSVS:
-                    c.setQuick()
-            return xlsxfile
-        
-        w = args[i]
-        if w[0] == '-':
-            if w == '-q':
-                print "Quick mode enabled"
-                quick = True
-            elif c:
-                if w == "-name":
-                    i = i + 1
-                    c.name = args[i]
-                elif w == "-width":
-                    i = i + 1
-                    c.width = int(args[i])
-                elif w == "-delim":
-                    i = i + 1
-                    c.delim = decodeDelimiter(args[i])
-                elif w == "-firstrow":
-                    i = i + 1
-                    c.firstrow = int(args[i] - 1)
-                elif w == "-firstcol":
-                    i = i + 1
-                    c.firstcol = int(args[i] - 1)
-                elif w == "-rowhdr":
-                    i = i + 1
-                    c.rowhdr.append(int(args[i]) - 1)
-                elif w == "-colhdr":
-                    i = i + 1
-                    c.colhdr.append(int(args[i]) - 1)
-                elif w == "-firstrowhdr":
-                    c.rowhdr.append(0)
-                elif w == "-firstcolhdr":
-                    c.colhdr.append(0)
-            else:
-                print "Error: sheet options specified before csv file name."
-                return None
-
-        else:
-            c = Csv(args[i])
-            CSVS.append(c)
-
-        i = i + 1
 
 def usage():
-    prog = sys.argv[0]
-    print """{} - Convert a tab-delimited file to .xlsx format
+    prog = os.path.split(sys.argv[0])[1]
+    print """{} - Convert one or more tab-delimited files to .xlsx format
 
 Usage:
 
-  {} outfile.xlsx file1.csv [file1 options...] [file2.csv [file2 options...]] ...
+  {} outfile.xlsx file1.csv [file1-options...] [file2.csv [file2-options...]] ...
 
 Each .csv file appearing on the command line is written to outfile.xlsx as a separate
 sheet. The csv file name may be followed by one or more options, that apply only to that
 file. Valid options are:
 
-  -q           - quick mode: sets sheet name to filename, adds -firstrowhdr
-  -name S      - set the sheet name to S.
-  -delim D     - file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
-  -width N     - set the width of all columns to N.
-  -firstrow N  - place the first row of the csv file in row N of the sheet (default: 1).
-  -firstcol N  - place the first column of the csv file in column N of the sheet (default: 1).
-  -rowhdr N    - format row N of the csv file as header (bold). This option may appear multiple times.
-  -colhdr N    - format column N of the csv file as header (bold). This option may appear multiple times.
-  -firstrowhdr - equivalent to -rowhdr 1 (first row will be bold).
-  -firstcolhdr - equivalent to -colhdr 1 (first column will be bold).
+  -q                  - quick mode: sets sheet name to filename, adds -firstrowhdr
+  -n S | -name S      - set the sheet name to S.
+  -d D | -delim D     - file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
+  -w N | -width N     - set the width of all columns to N.
+  -firstrow N         - place the first row of the csv file in row N of the sheet (default: 1).
+  -firstcol N         - place the first column of the csv file in column N of the sheet (default: 1).
+  -rowhdr N           - format row N of the csv file as header (bold). This option may appear multiple times.
+  -colhdr N           - format column N of the csv file as header (bold). This option may appear multiple times.
+  -firstrowhdr        - equivalent to -rowhdr 1 (first row will be bold).
+  -firstcolhdr        - equivalent to -colhdr 1 (first column will be bold).
 
 Full documentation and source code are available on GitHub:
 
@@ -298,9 +249,10 @@ def main(xlsxfile):
     for c in CSVS:
         worksheet = workbook.add_worksheet(c.name)
         (nrows, ncols) = c.to_worksheet(worksheet)
-        print "File {} added to workbook: {} rows, {} columns.".format(c.csvfile, nrows, ncols)
-        if c.width:
-            worksheet.set_column(0, ncols, c.width)
+        if nrows > 0 and ncols > 0:
+            sys.stderr.write("File {} added to workbook: {} rows, {} columns.\n".format(c.csvfile, nrows, ncols))
+            if c.width:
+                worksheet.set_column(0, ncols, c.width)
 
     workbook.close()
 
