@@ -10,6 +10,7 @@
 
 import sys
 import csv
+import xlrd
 import codecs
 import os.path
 import importlib
@@ -257,8 +258,63 @@ def main(xlsxfile):
 
     workbook.close()
 
-if __name__ == "__main__":
+def csvtoxls_main():
     xlsxfile = setup(sys.argv)
     if xlsxfile:
         main(xlsxfile)
 
+### Reverse conversion: Excel to csv
+
+class XLStoCSV():
+    delimiter = '\t'
+    quoted = False              # If True, put double-quotes around each field.
+
+    def main(self):
+        for x in sys.argv[1:]:
+            self.writeAllSheets(x)
+    
+    def sheetToFile(self, filename, sheet):
+        """Write the contents of `sheet' to `filename' using the 
+    supplied `delimiter'."""
+        with open(filename, "w") as out:
+            for rown in range(sheet.nrows):
+                newr = []
+                for x in sheet.row_values(rown):
+                    try:
+                        if not type(x).__name__ == 'unicode':
+                            x = str(x)
+                        newr.append(x.encode('utf-8'))
+                    except:
+                        print type(x).__name__
+                        print x
+                        return
+                if self.quoted:
+                    out.write('"' + newr[0] + '"')
+                else:
+                    out.write(newr[0])
+                for r in newr[1:]:
+                    out.write(self.delimiter)
+                    if self.quoted:
+                        out.write('"' + r + '"')
+                    else:
+                        out.write(r)
+                out.write("\n")
+
+    def writeAllSheets(self, xlsfile):
+        """Write all sheets in the supplied `xlsfile' to corresponding delimited files."""
+        basename = os.path.splitext(xlsfile)[0]
+        book = xlrd.open_workbook(xlsfile)
+        sheetnames = book.sheet_names()
+        sys.stderr.write("{} sheets:\n".format(book.nsheets))
+        for i in range(book.nsheets):
+            outfile = "{}-{}.csv".format(basename, sheetnames[i])
+            sys.stderr.write("Writing sheet {} to `{}'\n".format(i+1, outfile))
+            self.sheetToFile(outfile, book.sheet_by_index(i))
+
+if __name__ == "__main__":
+    progname = os.path.split(sys.argv[0])[1]
+    if progname == 'csvtoxls.py':
+        csvtoxls_main()
+    elif progname == 'xlstocsv.py':
+        X = XLStoCSV()
+        X.main()
