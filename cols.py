@@ -21,6 +21,8 @@ ROWNUM = 1
 SKIP = None
 RAW = False
 INFILES = []
+ITEMSFILE = None
+ITEMS = []
 
 def parseOptions(args):
     global MODE
@@ -47,7 +49,7 @@ def parseOptions(args):
             ROWNUM = int(a)
             FIRSTHDR = True
             next = ""
-        elif a == '-h':
+        elif a == '-h' or a == '--help':
             usage()
             sys.exit(1)
         elif a in ['-d', '-s', '-S']:
@@ -59,6 +61,8 @@ def parseOptions(args):
         elif a in ['-r', '--raw']:
             MODE = 'names'
             RAW = True
+        elif a in ['-i', '--index']:
+            MODE = 'index'
         elif a == '-0':
             ZERO = True
         elif a == '-R':
@@ -95,17 +99,15 @@ def processFromStream(filename, f):
         sys.stderr.write("{}: {} columns.\n".format(filename, ncols))
     elif MODE == 'names':
         sys.stderr.write("{}: {} columns.\n".format(filename, ncols))
-        if ZERO:
-            idx = 0
-        else:
-            idx = 1
+
         if RAW:
             for p in range(ncols):
-                print hdr[p]
+                print row[p]
         elif FIRSTHDR:
             for p in range(ncols):
                 print "  {} = {}".format(hdr[p], row[p])
         else:
+            idx = 0 if ZERO else 1
             for h in row:
                 print "  {} = {}".format(idx, h)
                 idx += 1
@@ -128,24 +130,33 @@ def processOneFile(filename):
         sys.stderr.write("{}: File not found.\n".format(filename))
 
 def usage():
-    sys.stderr.write("""Usage: cols.py [-h] [-c] [-0] [-m] [-d D] [-s N] [-R] files...
+    sys.stderr.write("""cols.py - analyze columns in a delimited file.
 
-Examine one or more delimited files and report one of the following:
+Usage: cols.py [-h] [-c] [-0] [-m] [-d D] [-s N] [-R] [-i I] files...
 
-number of columns in the first line (default)
-numbered list of entries in the first line (-c, --colnames)
-number of lines matching the number of columns in the first line (-m, --matches)
- 
-Delimiter is tab by default, can be changed with -d option. Numbering starts
-at 1, unless -0 is specified, in which case it is zero-based.
+With no options, print the number of columns in each of the supplied 
+files (computed as the number of fields in header, by default the 
+first row of the file). If no files are supplied, read standard input.
 
-The program examines the first row by default, or the line specified with the
--s option. If -S is used instead of -s, the program prints the contents of the
-specified line using the contents of the first line as column names instead of
-progressive numbers.
+Options:
 
-If -R is specified, assume the header is in R style (ie, the header for the first
-column is missing).
+  -h, --help     | Print this help message.
+  -c, --colnames | Print entries in the first line as numbered list.
+  -m, --matches  | Print the number of lines matching the number of
+                   fields in the header line.
+  -i, --items I  | Print to standard output the columns of each input
+                   file matching the items in file I.
+  -r, --raw      | Print the contents of the header line, one item
+                   per line.
+  -s N           | Use line N as the header (default: 1)
+  -S N           | Print the contents of line N using the first line
+                   as field names, in the format "field = value".
+  -0             | Number columns starting at 0 instead of 1.
+  -d D           | Use D as the delimiter (default: tab).
+  -R             | Assume R-style header (number of fields in header
+                   line is one less than the number of fields in the
+                   rest of the file.
+
 """)
 
 if __name__ == "__main__":
