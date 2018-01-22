@@ -90,7 +90,9 @@ first column will be set to bold."""
                     for c, col in enumerate(row):
                         if c > maxcol:
                             maxcol = c
-                        if (r in self.rowhdr) or (c in self.colhdr):
+                        if col.startswith("="):
+                            ws.write_formula(r + self.firstrow, c + self.firstcol, col)
+                        elif (r in self.rowhdr) or (c in self.colhdr):
                             ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
                         else:
                             ws.write(r + self.firstrow, c + self.firstcol, col)
