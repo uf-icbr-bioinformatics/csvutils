@@ -10,12 +10,16 @@
 
 import sys
 import csv
-import xlrd
 import codecs
 import os.path
 import importlib
 import xlsxwriter
-# import Tkinter, tkFileDialog
+
+try:
+  import xlrd
+  HAS_XLRD = True
+except:
+  HAS_XLRD = False
 
 from sys import platform as _platform
 IS_WIN = (_platform[0:3] == 'win') or (_platform == 'darwin') # Are we on Windows or Mac?
@@ -304,6 +308,9 @@ class XLStoCSV():
 
     def writeAllSheets(self, xlsfile):
         """Write all sheets in the supplied `xlsfile' to corresponding delimited files."""
+	if not HAS_XLRD:
+	    sys.stderr.write("This feature requires the xlrd module.\n")
+	    return
         basename = os.path.splitext(xlsfile)[0]
         book = xlrd.open_workbook(xlsfile)
         sheetnames = book.sheet_names()
