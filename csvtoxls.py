@@ -33,8 +33,24 @@ FORMATS = {}
 # List of Csv objects (each one represents a csv file, converted to a separate sheet)
 CSVS = []
 
-# Generator to read UTF-8 data (from Python docs)
+# List of sheet names seen so far (to avoid duplicates)
+SHEET_NAMES = []
 
+def validateSheetName(name):
+  global SHEET_NAMES
+  name = name[:min(len(name), 30)] # excel sheet names can't be longer than 31 characters...
+  if name in SHEET_NAMES:
+    idx = 1
+    prefix = name[:min(len(name), 27)]
+    while True:
+      name = "{}_{}".format(prefix, idx)
+      if not name in SHEET_NAMES:
+        break
+      idx += 1
+  SHEET_NAMES.append(name)
+  return name
+
+# Generator to read UTF-8 data (from Python docs)
 def unicode_csv_reader(unicode_csv_data, dialect=csv.excel, **kwargs):
     # csv.py doesn't do Unicode; encode temporarily as UTF-8:
     csv_reader = csv.reader(utf_8_encoder(unicode_csv_data), dialect=dialect, **kwargs)
@@ -70,7 +86,7 @@ class Csv():
         """Set sheet name to basename of filename, if not specified, and firstrowhdr."""
         if self.name == None:
             fname = os.path.split(self.csvfile)[1]
-            self.name = os.path.splitext(fname)[0][:30] # limit to the first 30 chars
+            self.name = validateSheetName(os.path.splitext(fname)[0])
         if not 0 in self.rowhdr:
             self.rowhdr.append(0)
 
@@ -178,7 +194,7 @@ def setupFromCmdline(args):
         elif a in OPTIONS:
             next = a
         elif next in ["-name", "-n"]:
-            a = a[:min(len(a), 30)] # excel sheet names can't be longer than 31 characters...
+            a = validateSheetName(a)
             setPar(c, 'name', a)
             next = ""
         elif next == ["-width", "-w"]:
