@@ -2,7 +2,7 @@
 
 ###################################################
 #
-# (c) 2015, Alberto Riva, ariva@ufl.edu
+# (c) 2015-2018, Alberto Riva, ariva@ufl.edu
 # DiBiG, ICBR Bioinformatics, University of Florida
 #
 # See the LICENSE file for license information.

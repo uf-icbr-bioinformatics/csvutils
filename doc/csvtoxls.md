@@ -77,4 +77,4 @@ tab-delimited file **file1.csv**, starting at row 3. The first row of the data w
 second sheet, called Totals, will show the contents of comma-delimited file **file2.csv**. The first two columns of the data will be in bold face.
 
 ## Credits
-**csvtoxls.py** is (c) 2014-2015, A. Riva, <A href='http://dibig.biotech.ufl.edu'>DiBiG</A>, <A href='http://biotech.ufl.edu/'>ICBR Bioinformatics</A>, University of Florida
+**csvtoxls.py** is (c) 2014-2018, A. Riva, <A href='http://biotech.ufl.edu/'>ICBR Bioinformatics Core</A>, University of Florida Research Foundation.
