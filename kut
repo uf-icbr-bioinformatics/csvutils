@@ -3,6 +3,16 @@
 import sys
 import csv
 
+def decodeDelimiter(d):
+    if d == 'tab':
+        return '\t'
+    elif d == 'sp':
+        return ' '
+    elif d == 'nl':
+        return '\n'
+    else:
+        return d
+
 def splitRange(w):
     r = w.split("-")
     try:
@@ -18,28 +28,11 @@ def splitRange(w):
     except ValueError:
         return None
     
-def parseColumns(a):
-    cols = []
-    for w in a.split(","):
-        w = w.strip()
-        if w == "-":
-            cols.append((-1, 0))
-        elif "-" in w:
-            limits = splitRange(w)
-            if limits:
-                cols.append(limits)
-        else:
-            try:
-                x = int(w)
-                cols.append(x-1)
-            except ValueError:
-                pass
-    return cols
-
 class Kutter():
     infiles = []
     columns = []
     delimiter = '\t'
+    outdelim = None
     quotechar = None
     missing = "???"
     ncols = 0
@@ -63,6 +56,7 @@ Options:
 
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -d D         | Set delimiter to D (default: tab).
+ -e E         | Set output delimited to E (default: same as -d).
  -q Q         | Set quote character to Q (default: None).
  -m M         | Use M in place of missing values, e.g. if a line is shorter 
                 than the rest (default: '???').
@@ -77,7 +71,8 @@ Each column specification C can be:
  The string '-', interpreted as all columns in reverse order.
 
 Note that in a range p-q, p can be larger than q, and that columns
-can be repeated. Some examples, assuming that file test.csv has five columns:
+can be repeated. Also, the -f option can be specified more than once
+for readability. Some examples, assuming that file test.csv has five columns:
 
 kut -f 1,5,3 test.csv   - Columns 1, 5, and 3 in this order
 kut -f 2-4 test.csv     - Columns 2, 3, and 4
@@ -85,21 +80,44 @@ kut -f -2 test.csv      - Columns 1 and 2
 kut -f 2- test.csv      - Columns 2, 3, 4, and 5
 kut -f 3-1 test.csv     - Columns 3, 2, and 1
 kut -f 3-1,2-4 test.csv - Columns 3, 2, 1, 2, 3, and 4.
+kut -f 3-1 -f 2-4 test.csv - Same as previous example.
 kut -f - test.csv       - Columns 5, 4, 3, 2, and 1
 
+A delimiter specification (for -d and -e) can be a single character,
+or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
 """)
         
+    def parseColumns(self, a):
+        for w in a.split(","):
+            w = w.strip()
+            if w == "-":
+                self.columns.append((-1, 0))
+            elif "-" in w:
+                limits = splitRange(w)
+                if limits:
+                    self.columns.append(limits)
+            else:
+                try:
+                    x = int(w)
+                    self.columns.append(x-1)
+                except ValueError:
+                    pass
+
     def parseArgs(self, args):
         if "-h" in args or "--h" in args:
             self.usage()
             return False
         prev = ""
+        self.columns = []
         for a in args:
             if prev == "-f":
-                self.columns = parseColumns(a)
+                self.parseColumns(a)
                 prev = ""
             elif prev == "-d":
-                self.delimiter = a
+                self.delimiter = decodeDelimiter(a)
+                prev = ""
+            elif prev == "-e":
+                self.outdelim = decodeDelimiter(a)
                 prev = ""
             elif prev == "-q":
                 self.quotechar = a
@@ -107,10 +125,12 @@ kut -f - test.csv       - Columns 5, 4, 3, 2, and 1
             elif prev == "-m":
                 self.missing = a
                 prev = ""
-            elif a in ["-f", "-d", "-q", "-m"]:
+            elif a in ["-f", "-d", "-e", "-q", "-m"]:
                 prev = a
             else:
                 self.infiles.append(a)
+        if not self.outdelim:
+            self.outdelim = self.delimiter
         return True
         
     def describe(self):
@@ -155,7 +175,7 @@ Filenames: {}
                 self.rowlen = len(row)
                 wcolumns = self.realColumns(row)
             outrow = [self.safeGetField(row, c) for c in wcolumns]
-            sys.stdout.write("\t".join(outrow) + "\n")
+            sys.stdout.write(self.outdelim.join(outrow) + "\n")
 
 if __name__ == "__main__":
     K = Kutter()

@@ -20,6 +20,7 @@ Option | Description
 ---------------|------------
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -d D         | Set delimiter to D (default: tab).
+ -e E         | Set output delimited to E (default: same as -d).
  -q Q         | Set quote character to Q (default: None).
  -m M         | Use M in place of missing values, e.g. if a line is shorter than the rest (default: '???').
 
@@ -31,8 +32,12 @@ Each column specification C can be:
   * if q is omitted it defaults to the last column in the file (recomputed for each file).
 * The string '-', interpreted as all columns in reverse order.
 
-Note that in a range p-q, p can be larger than q, and that columns
-can be repeated.
+Note that in a range `p-q`, `p` can be larger than `q`, and that columns
+can be repeated. Also, the -f option can be specified more than once
+for readability. 
+
+A delimiter specification (for -d and -e) can be a single character,
+or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
 
 ## Examples
 Some examples, assuming that file test.csv has five columns:
