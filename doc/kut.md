@@ -28,8 +28,7 @@ Each column specification C can be:
 * A column number (1-based).
 * A range of the form p-q, meaning columns from p to q inclusive;
   * if p is omitted it defaults to the first column;
-  * if q is omitted it defaults to the last column in the
-  * file (recomputed for each file).
+  * if q is omitted it defaults to the last column in the file (recomputed for each file).
 * The string '-', interpreted as all columns in reverse order.
 
 Note that in a range p-q, p can be larger than q, and that columns
@@ -45,5 +44,5 @@ kut -f 2-4 test.csv     | Columns 2, 3, and 4
 kut -f -2 test.csv      | Columns 1 and 2
 kut -f 2- test.csv      | Columns 2, 3, 4, and 5
 kut -f 3-1 test.csv     | Columns 3, 2, and 1
-kut -f 3-1,2-4 test.csv | Columns 3, 2, 1, 2, 3, and 4.
+kut -f 3-1,2-4 test.csv | Columns 3, 2, 1, 2, 3, and 4
 kut -f - test.csv       | Columns 5, 4, 3, 2, and 1
