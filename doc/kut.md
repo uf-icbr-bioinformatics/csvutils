@@ -21,16 +21,15 @@ Option | Description
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -d D         | Set delimiter to D (default: tab).
  -q Q         | Set quote character to Q (default: None).
- -m M         | Use M in place of missing values, e.g. if a line is shorter 
-                than the rest (default: '???').
+ -m M         | Use M in place of missing values, e.g. if a line is shorter than the rest (default: '???').
 
 Each column specification C can be:
 
 * A column number (1-based).
 * A range of the form p-q, meaning columns from p to q inclusive;
-        if p is omitted it defaults to the first column;
-        if q is omitted it defaults to the last column in the
-        file (recomputed for each file).
+  * if p is omitted it defaults to the first column;
+  * if q is omitted it defaults to the last column in the
+  * file (recomputed for each file).
 * The string '-', interpreted as all columns in reverse order.
 
 Note that in a range p-q, p can be larger than q, and that columns
