@@ -1,0 +1,171 @@
+#!/usr/bin/env python
+
+import sys
+import csv
+
+def splitRange(w):
+    r = w.split("-")
+    try:
+        if r[0]:
+            a = int(r[0]) - 1
+        else:
+            a = 0
+        if r[1]:
+            b = int(r[1]) - 1
+        else:
+            b = -1
+        return (a, b)
+    except ValueError:
+        return None
+    
+def parseColumns(a):
+    cols = []
+    for w in a.split(","):
+        w = w.strip()
+        if w == "-":
+            cols.append((-1, 0))
+        elif "-" in w:
+            limits = splitRange(w)
+            if limits:
+                cols.append(limits)
+        else:
+            try:
+                x = int(w)
+                cols.append(x-1)
+            except ValueError:
+                pass
+    return cols
+
+class Kutter():
+    infiles = []
+    columns = []
+    delimiter = '\t'
+    quotechar = None
+    missing = "???"
+    ncols = 0
+    
+    def __init__(self):
+        self.infiles = []
+        self.columns = []
+
+    def usage(self):
+        sys.stdout.write("""kut - spiced-up version of the cut command
+
+Usage: kut [options] filenames...
+
+This command extracts columns from the specified files (or standard input
+if no filenames are specified) and prints them to standard output. Wanted 
+columns are specified using the -f option, and are printed in the order in 
+which they are specified (contrast this with the cut command, which always 
+prints them in their original order).
+
+Options:
+
+ -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
+ -d D         | Set delimiter to D (default: tab).
+ -q Q         | Set quote character to Q (default: None).
+ -m M         | Use M in place of missing values, e.g. if a line is shorter 
+                than the rest (default: '???').
+
+Each column specification C can be:
+
+ A column number (1-based).
+ A range of the form p-q, meaning columns from p to q inclusive;
+        if p is omitted it defaults to the first column;
+        if q is omitted it defaults to the last column in the
+        file (recomputed for each file).
+ The string '-', interpreted as all columns in reverse order.
+
+Note that in a range p-q, p can be larger than q, and that columns
+can be repeated. Some examples, assuming that file test.csv has five columns:
+
+kut -f 1,5,3 test.csv   - Columns 1, 5, and 3 in this order
+kut -f 2-4 test.csv     - Columns 2, 3, and 4
+kut -f -2 test.csv      - Columns 1 and 2
+kut -f 2- test.csv      - Columns 2, 3, 4, and 5
+kut -f 3-1 test.csv     - Columns 3, 2, and 1
+kut -f 3-1,2-4 test.csv - Columns 3, 2, 1, 2, 3, and 4.
+kut -f - test.csv       - Columns 5, 4, 3, 2, and 1
+
+""")
+        
+    def parseArgs(self, args):
+        if "-h" in args or "--h" in args:
+            self.usage()
+            return False
+        prev = ""
+        for a in args:
+            if prev == "-f":
+                self.columns = parseColumns(a)
+                prev = ""
+            elif prev == "-d":
+                self.delimiter = a
+                prev = ""
+            elif prev == "-q":
+                self.quotechar = a
+                prev = ""
+            elif prev == "-m":
+                self.missing = a
+                prev = ""
+            elif a in ["-f", "-d", "-q", "-m"]:
+                prev = a
+            else:
+                self.infiles.append(a)
+        return True
+        
+    def describe(self):
+        sys.stdout.write("""Columns: {}
+Delimiter: {}
+Quotechar: {}
+Filenames: {}
+""".format(self.columns, self.delimiter, self.quotechar, self.infiles))
+
+    def realColumns(self, row):
+        wcols = []
+        ncols = self.rowlen - 1
+        for c in self.columns:
+            if type(c).__name__ == "tuple":
+                (a, b) = c
+                if a == -1:
+                    a = ncols
+                if b == -1:
+                    b = ncols
+                #print "a={}, b={}".format(a, b)
+                if b > a:
+                    for i in range(a, b+1):
+                        wcols.append(i)
+                else:
+                    for i in range(a, b-1, -1):
+                        wcols.append(i)
+            else:
+                wcols.append(c)
+        return wcols
+
+    def safeGetField(self, row, c):
+        try:
+            return row[c]
+        except IndexError:
+            return self.missing
+    
+    def readfile(self, f):
+        wcolumns = None
+        r = csv.reader(f, delimiter=self.delimiter, quotechar=self.quotechar)
+        for row in r:
+            if not wcolumns:
+                self.rowlen = len(row)
+                wcolumns = self.realColumns(row)
+            outrow = [self.safeGetField(row, c) for c in wcolumns]
+            sys.stdout.write("\t".join(outrow) + "\n")
+
+if __name__ == "__main__":
+    K = Kutter()
+    if K.parseArgs(sys.argv[1:]):
+        #K.describe()
+        if K.infiles:
+            for filename in K.infiles:
+                with open(filename, "r") as f:
+                    K.readfile(f)
+        elif K.columns:
+            K.readfile(sys.stdin)
+        else:
+            K.usage()
