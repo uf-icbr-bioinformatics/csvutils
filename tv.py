@@ -1,5 +1,16 @@
 #!/usr/bin/env python
 
+#####
+#
+# tv.py - Interactive, full-screen viewer for delimited files.
+#
+####
+__doc__ = "Interactive, full-screen viewer for delimited files."
+__author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
+__email__ = "ariva@ufl.edu"
+__license__ = "GPL v3.0"
+__copyright__ = "Copyright 2018, University of Florida Research Foundation"
+
 import sys
 import csv
 import time

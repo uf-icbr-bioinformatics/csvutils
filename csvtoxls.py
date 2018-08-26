@@ -1,12 +1,15 @@
 #!/usr/bin/env python
 
-###################################################
+#####
 #
-# (c) 2015-2018, Alberto Riva, ariva@ufl.edu
-# DiBiG, ICBR Bioinformatics, University of Florida
+# csvtoxls.py - Convert tab-delimited files to Excel format.
 #
-# See the LICENSE file for license information.
-###################################################
+####
+__doc__ = "Convert tab-delimited files to Excel format."
+__author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
+__email__ = "ariva@ufl.edu"
+__license__ = "GPL v3.0"
+__copyright__ = "Copyright 2018, University of Florida Research Foundation"
 
 import sys
 import csv

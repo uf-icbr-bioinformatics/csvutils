@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
-###################################################
+#####
 #
-# (c) 2016, Alberto Riva, ariva@ufl.edu
-# DiBiG, ICBR Bioinformatics, University of Florida
+# cols.py - Display and check number of columns in delimited files.
 #
-# See the LICENSE file for license information.
-###################################################
+####
+__doc__ = "Display and check number of columns in delimited files.
+__author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
+__email__ = "ariva@ufl.edu"
+__license__ = "GPL v3.0"
+__copyright__ = "Copyright 2018, University of Florida Research Foundation"
+
 
 import sys
 import csv
