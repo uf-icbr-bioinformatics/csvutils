@@ -5,7 +5,7 @@
 # cols.py - Display and check number of columns in delimited files.
 #
 ####
-__doc__ = "Display and check number of columns in delimited files.
+__doc__ = "Display and check number of columns in delimited files."
 __author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
 __email__ = "ariva@ufl.edu"
 __license__ = "GPL v3.0"
