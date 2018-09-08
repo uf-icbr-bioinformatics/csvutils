@@ -11,6 +11,7 @@ class TDFile():
     label = ""
     delim = None
     quotechar = None
+    rmode = False
     data = []
     nrows = 0
     ncols = 0
@@ -27,9 +28,13 @@ class TDFile():
             self.delim = self.detectDelimiter()
         rows_read = 0
         self.data = []
+        first = True
         with open(self.filename, "r") as f:
             c = self.openReader(f)
             for parsed in c:
+                if first and self.rmode:
+                    parsed = ['\t'] + parsed
+                    first = False
                 ll = len(parsed)
                 self.nrows += 1
                 if self.colsizes:
@@ -66,6 +71,8 @@ class TDFile():
             if count > bestc:
                 best = ch
                 bestc = count
+        sys.stderr.write("Delimiter detected as: {}\n".format("tab" if best == "\t" else best))
+        time.sleep(1)
         return best
 
     def writeLine(self, win, ypos, w, rdata, attr):
@@ -249,6 +256,8 @@ class Driver():
                 prev = a
             elif a == '-b':
                 TDFile.header = True
+            elif a == '-R':
+                TDFile.rmode = True
             else:
                 self.files.append([a, None])
         self.nfiles = len(self.files)
