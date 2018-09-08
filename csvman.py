@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
-###################################################
+#####
 #
-# (c) 2015, Alberto Riva, ariva@ufl.edu
-# DiBiG, ICBR Bioinformatics, University of Florida
+# csvman.py - Command-line shell to manipulate delimited files.
 #
-# See the LICENSE file for license information.
-###################################################
+####
+__doc__ = "Command-line shell to manipulate delimited files."
+__author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
+__email__ = "ariva@ufl.edu"
+__license__ = "GPL v3.0"
+__copyright__ = "Copyright 2018, University of Florida Research Foundation"
+
 
 ###################################################
 #
