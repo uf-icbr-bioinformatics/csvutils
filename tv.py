@@ -17,10 +17,15 @@ import time
 import curses
 from curses.wrapper import wrapper
 
+def writeDelimiter(d):
+    x = "t" if ord(d) == 9 else d
+    return x
+
 class TDFile():
     filename = None
     label = ""
     delim = None
+    delimname = ""
     quotechar = None
     rmode = False
     data = []
@@ -37,6 +42,9 @@ class TDFile():
         self.filename = filename
         if self.delim is None:
             self.delim = self.detectDelimiter()
+            self.delimname = writeDelimiter(self.delim)
+            # sys.stderr.write("Delimiter: {} {}\n".format(self.delim, self.delimname))
+            # raw_input()
         rows_read = 0
         self.data = []
         first = True
@@ -82,8 +90,8 @@ class TDFile():
             if count > bestc:
                 best = ch
                 bestc = count
-        sys.stderr.write("Delimiter detected as: {}\n".format("tab" if best == "\t" else best))
-        time.sleep(1)
+        #sys.stderr.write("Delimiter detected as: {}\n".format("tab" if best == "\t" else best))
+        #time.sleep(1)
         return best
 
     def writeLine(self, win, ypos, w, rdata, attr):
@@ -131,7 +139,7 @@ class TDFile():
                 break
             win.move(ypos, xpos)
         win.move(maxrow, 0)
-        win.addstr("Row: {}/{} Col: {}/{}".format(self.row + 1, self.nrows, self.col + 1, self.ncols), curses.A_BOLD)
+        win.addstr("[{}] Row: {}/{} Col: {}/{}".format(self.delimname, self.row + 1, self.nrows, self.col + 1, self.ncols), curses.A_BOLD)
         win.move(maxrow, w - len(self.label) - 1)
         win.addstr(self.label, curses.A_BOLD)
         win.refresh()

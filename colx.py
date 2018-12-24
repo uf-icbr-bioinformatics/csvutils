@@ -5,7 +5,7 @@
 # colx.py - Compute intersections among columns of delimited files.
 #
 ####
-__doc__ = "Compute intersections among columns of delimited files.
+__doc__ = "Compute intersections among columns of delimited files."
 __author__ = "Alberto Riva, UF ICBR Bioinformatics core, University of Florida"
 __email__ = "ariva@ufl.edu"
 __license__ = "GPL v3.0"
@@ -238,6 +238,8 @@ def main(C, args):
                 writeList(out, data)
         if C.write:
             writeList(sys.stdout, data)
+        elif C.quiet:
+            sys.stdout.write(str(len(data)) + "\n")
 
 def usage():
     sys.stderr.write("""Usage: colx.py [-wqsmiduh] [-o outfile] filespecs...
@@ -251,7 +253,8 @@ the final output are printed to standard error.
   -h         | Print this usage message. Ignore all other options.
   -o outfile | Print the resulting list to file 'outfile' (can be combined with -w).
   -w         | Print the resulting elements to standard output.
-  -q         | Do not print counts to standard error.
+  -q         | Do not print counts to standard error. Only print the number of entries
+               in result to standard error, unless -w is specified.
   -s[r][an]  | Sort resulting list. By default, sort is alphabetical. Add an 'n' to
                sort numerically instead. Add an 'r' to reverse sort order.
   -c char    | Use 'char' as delimiter. Use 's' for space, 't' for tab (default).
