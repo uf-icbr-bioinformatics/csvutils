@@ -42,6 +42,7 @@ def splitRange(w):
 class Kutter():
     infiles = []
     columns = []
+    reverse = False             # If true, columns contains columns to be skipped
     delimiter = '\t'
     outdelim = None
     quotechar = None
@@ -66,6 +67,7 @@ prints them in their original order).
 Options:
 
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
+ -v           | Reverse mode: print only columns NOT specified by -f. (not implemented yet)
  -d D         | Set delimiter to D (default: tab).
  -e E         | Set output delimited to E (default: same as -d).
  -q Q         | Set quote character to Q (default: None).
@@ -138,6 +140,8 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
                 prev = ""
             elif a in ["-f", "-d", "-e", "-q", "-m"]:
                 prev = a
+            elif a == "-v":
+                self.reverse = True
             else:
                 self.infiles.append(a)
         if not self.outdelim:
@@ -151,7 +155,7 @@ Quotechar: {}
 Filenames: {}
 """.format(self.columns, self.delimiter, self.quotechar, self.infiles))
 
-    def realColumns(self, row):
+    def realColumns(self):
         wcols = []
         ncols = self.rowlen - 1
         for c in self.columns:
@@ -172,6 +176,37 @@ Filenames: {}
                 wcols.append(c)
         return wcols
 
+    def matches(self, i):
+        """Returns True if `i' matches one of the wanted columns."""
+        for c in self.columns:
+            # sys.stderr.write(str(c) + "\n")
+            if type(c).__name__ == "tuple":
+                (a, b) = c
+                if a == -1:
+                    a = ncols
+                if b == -1:
+                    b = ncols
+                if b < a:
+                    (a, b) = (b, a)
+                # sys.stderr.write("{} {} {}\n".format(a, i, b))
+                if a <= i <= b:
+                    return True
+            else:
+                if c == i:
+                    return True
+        return False
+                    
+    def revColumns(self):
+        wcols = []
+        ncols = self.rowlen - 1
+
+        for c in range(self.rowlen):
+            v = self.matches(c)
+            # sys.stderr.write("{} => {}\n".format(c, v))
+            if not v:
+                wcols.append(c)
+        return wcols
+
     def safeGetField(self, row, c):
         try:
             return row[c]
@@ -184,14 +219,21 @@ Filenames: {}
         for row in r:
             if not wcolumns:
                 self.rowlen = len(row)
-                wcolumns = self.realColumns(row)
+                if self.reverse:
+                    wcolumns = self.revColumns()
+                else:
+                    wcolumns = self.realColumns()
+                # print wcolumns
             outrow = [self.safeGetField(row, c) for c in wcolumns]
-            sys.stdout.write(self.outdelim.join(outrow) + "\n")
+            try:
+                sys.stdout.write(self.outdelim.join(outrow) + "\n")
+            except IOError:
+                break
 
 if __name__ == "__main__":
     K = Kutter()
     if K.parseArgs(sys.argv[1:]):
-        #K.describe()
+        K.describe()
         if K.infiles:
             for filename in K.infiles:
                 with open(filename, "r") as f:
