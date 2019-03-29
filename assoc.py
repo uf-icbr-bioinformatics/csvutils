@@ -51,7 +51,7 @@ class Assoc(object):
             elif prev == "-d":
                 self.delimiter = decodeDelimiter(a)
                 prev = ""
-            elif a in ["-i", "-o", "-m". "-d"]:
+            elif a in ["-i", "-o", "-m", "-d"]:
                 prev = a
             elif a == "-p":
                 self._preserve = True

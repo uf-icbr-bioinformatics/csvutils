@@ -1,6 +1,8 @@
 # assoc.py
+Read key-value mappings from a tab-delimited file and use them to translate input strings.
 
-##Introduction
+
+## Introduction
 This program reads a tab-delimited file `filename' and builds a table mapping the 
 strings from the input column (by default, the first one) to the corresponding ones
 in the output column (by default the one after the input column, unless a different
@@ -31,15 +33,59 @@ Option | Description
   -r   | Interactive mode.
 
 
-##Examples
+## Examples
+
+Assume you have a tab-delimited file called TABLE with three columns:
 
 ```
-  assoc.py -o 3 file
+  john   lennon	    guitar
+  paul	 mccartney  bass
+  george harrison   guitar
+  ringo  starr      drums
 ```
-Maps the contents of column 1 to the contents of column 3.
+
+A file called NAMES containing:
 
 ```
-  assoc.py file:2 
+  ringo
+  john
+  mick
 ```
-Maps the contents of column 2 to the contents of column 3.
 
+And a file called INSTRUMENTS containing:
+```
+  bass
+  drums
+```
+
+Then:
+
+```
+# By default, map first column to second
+$ cat NAMES | assoc.py TABLE
+starr
+lennon
+???
+
+# Map first column to third
+$ cat NAMES | assoc.py -o 3 TABLE
+drums
+guitar
+???
+
+# Use a different value for missing identifiers
+$ cat NAMES | assoc.py -m unknown TABLE
+starr
+lennon
+unknown
+
+# Map third column to second:
+$ cat INSTRUMENTS | assoc.py -o 2 TABLE:3
+starr
+mccartney
+
+# Previous example could also be written as:
+$ cat INSTRUMENTS | assoc.py -i 3 -o 2 TABLE
+starr
+mccartney
+````
