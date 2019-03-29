@@ -122,7 +122,7 @@ Usage: assoc.py [options] filename [col]
 This program reads a tab-delimited file `filename' and builds a table mapping the 
 strings from the input column (by default, the first one) to the corresponding ones
 in the output column (by default the one after the input column, unless a different
-one is specified with the `col' argument). A different input column can be specified
+one is specified with the -o argument). A different input column can be specified
 with the -i argument or by appending :N to the filename, where N is the column number. 
 
 After creating the mapping, the program will read identifiers from standard input and
