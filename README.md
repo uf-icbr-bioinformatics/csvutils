@@ -6,6 +6,7 @@ follow the links in the table below for a description of each utility.
 
 Name                       | Description
 ---------------------------|--------------
+[assoc.py](doc/assoc.md)       | Associate values from different columns of a CSV file.
 [cols.py](doc/cols.md)         | Report number of columns in one or more CSV files.
 [colx.py](doc/colx.md)         | Find intersection among columns in one or more CSV files.
 [csvman.py](doc/csvman.md)     | Command-line shell to manipulate delimited files.

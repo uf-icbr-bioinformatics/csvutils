@@ -1,0 +1,59 @@
+#!/usr/bin/env python
+
+import sys
+
+class Reader(object):
+    active = True
+    filename = ""
+    stream = None
+
+    def __init__(self, filename):
+        self.filename = filename
+        self.stream = open(filename, "r")
+
+    def close(self):
+        self.active = False
+        self.stream.close()
+
+    def getline(self):
+        return self.stream.readline()
+
+class MultiReader(object):
+    readers = []
+    nactive = 0
+
+    def __init__(self, filenames):
+        for f in filenames:
+            R = Reader(f)
+            self.readers.append(R)
+            self.nactive += 1
+
+    def getline(self):
+        line = []
+        if self.nactive == 0:
+            return None
+        for R in self.readers:
+            if R.active:
+                w = R.getline()
+                if w:
+                    line.append(w.rstrip("\r\n"))
+                else:
+                    R.close()
+                    self.nactive += -1
+                    line.append('')
+            else:
+                line.append('')
+        return line
+
+    def run(self):
+        while True:
+            line = self.getline()
+            if line:
+                sys.stdout.write("\t".join(line) + "\n")
+            else:
+                break
+
+if __name__ == "__main__":
+    filenames = sys.argv[1:]
+    M = MultiReader(filenames)
+    M.run()

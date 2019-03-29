@@ -20,7 +20,7 @@ Option | Description
 ---------------|------------
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -d D         | Set delimiter to D (default: tab).
- -e E         | Set output delimited to E (default: same as -d).
+ -e E         | Set output delimiter to E (default: same as -d).
  -q Q         | Set quote character to Q (default: None).
  -m M         | Use M in place of missing values, e.g. if a line is shorter than the rest (default: '???').
 
