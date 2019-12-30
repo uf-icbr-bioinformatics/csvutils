@@ -67,7 +67,7 @@ class Assoc(object):
 
     def readTable(self):
         with open(self.filename, "r") as f:
-            c = csv.reader(f, delimiter='\t')
+            c = csv.reader(f, delimiter=self.delimiter)
             for line in c:
                 self._data[line[self.incol]] = line[self.outcol]
         sys.stderr.write("[{} associations read from {}.]\n".format(len(self._data), self.filename))

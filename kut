@@ -149,7 +149,7 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
         return True
         
     def describe(self):
-        sys.stdout.write("""Columns: {}
+        sys.stderr.write("""Columns: {}
 Delimiter: {}
 Quotechar: {}
 Filenames: {}

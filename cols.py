@@ -48,7 +48,7 @@ Options:
   -d D           | Use D as the delimiter (default: tab).
   -R             | Assume R-style header (number of fields in header
                    line is one less than the number of fields in the
-                   rest of the file.
+                   rest of the file).
 
 """)
 
