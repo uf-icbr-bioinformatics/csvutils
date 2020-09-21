@@ -82,8 +82,8 @@ class Csv():
         self.colhdr = []
 
     def dump(self):
-        print "Csv {} name={} delim={} width={} firstrow={} firstcol={} rowhdr={} colhdr={}".format(self.csvfile, self.name, self.delim, self.width, 
-                                                                                                    self.firstrow, self.firstcol, self.rowhdr, self.colhdr)
+        sys.stdout.write("Csv {} name={} delim={} width={} firstrow={} firstcol={} rowhdr={} colhdr={}\n".format(self.csvfile, self.name, self.delim, self.width, 
+                                                                                                               self.firstrow, self.firstcol, self.rowhdr, self.colhdr))
 
     def setQuick(self):
         """Set sheet name to basename of filename, if not specified, and firstrowhdr."""
@@ -186,6 +186,9 @@ def setupFromCmdline(args):
     if '-h' in args:
         usage()
 
+    if "-v" in args:
+        version()
+
     for a in args[1:]:
         if a in ['-q', "-quick"]:
             sys.stderr.write("Quick mode enabled.\n")
@@ -235,7 +238,7 @@ def setupFromCmdline(args):
 
 def usage():
     prog = os.path.split(sys.argv[0])[1]
-    print """{} - Convert one or more tab-delimited files to .xlsx format
+    sys.stdout.write("""{} - Convert one or more tab-delimited files to .xlsx format
 
 Usage:
 
@@ -258,16 +261,21 @@ file. Valid options are:
 
 Full documentation and source code are available on GitHub:
 
-  http://github.com/albertoriva/cvstoxls/
+  http://github.com/albertoriva/csvtoxls/
 
-(c) 2014-2017, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
-""".format(prog, prog)
+(c) 2014-2020, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
+
+""".format(prog, prog))
     sys.exit(-1)
+
+def version():
+    sys.stdout.write("csvtoxls.py v1.0\n")
+    sys.exit(0)
 
 def main(xlsxfile):
     global FORMATS
 
-    print "Writing XLSX file {}".format(xlsxfile)
+    sys.stdout.write("Writing XLSX file {}\n".format(xlsxfile))
     workbook = xlsxwriter.Workbook(xlsxfile, {'strings_to_numbers': True})
     workbook.set_properties({'author': 'A. Riva, ariva@ufl.edu', 'company': 'DiBiG - ICBR Bioinformatics'}) # these should be read from conf or command-line
     FORMATS['bold'] = workbook.add_format({'bold': 1})
@@ -310,8 +318,7 @@ class XLStoCSV():
                             x = str(x)
                         newr.append(x.encode('utf-8'))
                     except:
-                        print type(x).__name__
-                        print x
+                        sys.stderr.write("Error storing value `{}' of type `{}'.\n".format(x, type(x).__name__))
                         return
                 if self.quoted:
                     out.write('"' + newr[0] + '"')
@@ -327,9 +334,9 @@ class XLStoCSV():
 
     def writeAllSheets(self, xlsfile):
         """Write all sheets in the supplied `xlsfile' to corresponding delimited files."""
-	if not HAS_XLRD:
-	    sys.stderr.write("This feature requires the xlrd module.\n")
-	    return
+        if not HAS_XLRD:
+            sys.stderr.write("This feature requires the xlrd module.\n")
+            return
         basename = os.path.splitext(xlsfile)[0]
         book = xlrd.open_workbook(xlsfile)
         sheetnames = book.sheet_names()

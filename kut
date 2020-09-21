@@ -67,7 +67,8 @@ prints them in their original order).
 Options:
 
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
- -v           | Reverse mode: print only columns NOT specified by -f. (not implemented yet)
+ -F F         | Like -f, but read wanted columns from file F (one per line).
+ -v           | Reverse mode: print only columns NOT specified by -f or -F.
  -d D         | Set delimiter to D (default: tab).
  -e E         | Set output delimited to E (default: same as -d).
  -q Q         | Set quote character to Q (default: None).
@@ -79,8 +80,7 @@ Each column specification C can be:
  A column number (1-based).
  A range of the form p-q, meaning columns from p to q inclusive;
         if p is omitted it defaults to the first column;
-        if q is omitted it defaults to the last column in the
-        file (recomputed for each file).
+        if q is omitted it defaults to the last column in the file (recomputed for each file).
  The string '-', interpreted as all columns in reverse order.
 
 Note that in a range p-q, p can be larger than q, and that columns
@@ -102,19 +102,27 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
         
     def parseColumns(self, a):
         for w in a.split(","):
-            w = w.strip()
-            if w == "-":
-                self.columns.append((-1, 0))
-            elif "-" in w:
-                limits = splitRange(w)
-                if limits:
-                    self.columns.append(limits)
-            else:
-                try:
-                    x = int(w)
-                    self.columns.append(x-1)
-                except ValueError:
-                    pass
+            self.parseOneColumn(w)
+
+    def parseColumnsFromFile(self, filename):
+        with open(filename, "r") as f:
+            for line in f:
+                self.parseOneColumn(line)
+
+    def parseOneColumn(self, w):
+        w = w.strip()
+        if w == "-":
+            self.columns.append((-1, 0))
+        elif "-" in w:
+            limits = splitRange(w)
+            if limits:
+                self.columns.append(limits)
+        else:
+            try:
+                x = int(w)
+                self.columns.append(x-1)
+            except ValueError:
+                pass
 
     def parseArgs(self, args):
         if "-h" in args or "--h" in args:
@@ -125,6 +133,9 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
         for a in args:
             if prev == "-f":
                 self.parseColumns(a)
+                prev = ""
+            elif prev == "-F":
+                self.parseColumnsFromFile(a)
                 prev = ""
             elif prev == "-d":
                 self.delimiter = decodeDelimiter(a)
@@ -138,7 +149,7 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
             elif prev == "-m":
                 self.missing = a
                 prev = ""
-            elif a in ["-f", "-d", "-e", "-q", "-m"]:
+            elif a in ["-f", "-F", "-d", "-e", "-q", "-m"]:
                 prev = a
             elif a == "-v":
                 self.reverse = True
@@ -201,9 +212,7 @@ Filenames: {}
         ncols = self.rowlen - 1
 
         for c in range(self.rowlen):
-            v = self.matches(c)
-            # sys.stderr.write("{} => {}\n".format(c, v))
-            if not v:
+            if not self.matches(c):
                 wcols.append(c)
         return wcols
 
