@@ -14,6 +14,8 @@ import os.path
 
 import Script
 
+PY3 = (sys.version_info.major == 3)
+
 ### Program definition
 
 def usage():
@@ -112,19 +114,21 @@ class Cols(Script.Script):
         hdr = []
         row = []
         reader = csv.reader(f, delimiter=self.DELIMITER, quotechar='"')
+        next = reader.__next__ if PY3 else reader.next
+
         # print(MODE, ROWNUM, DELIMITER, SKIP, FIRSTHDR, RAW)
 
         if self.FIRSTHDR:
-            hdr = reader.next()
+            hdr = next()
 
         if self.RSTYLE:
             hdr = ["<<RowNum>>"] + hdr
 
         for i in range(1, self.ROWNUM):
-            reader.next()
+            next()
 
         while True:
-            row = reader.next()
+            row = next()
             if self.SKIP == None or row[0][0] != self.SKIP:
                 break
 

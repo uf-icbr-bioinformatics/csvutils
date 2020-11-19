@@ -15,7 +15,13 @@ import sys
 import csv
 import time
 import curses
-from curses.wrapper import wrapper
+
+PY3 = (sys.version_info.major == 3)
+
+if PY3:
+    from curses import wrapper
+else:
+    from curses.wrapper import wrapper
 
 def writeDelimiter(d):
     x = "t" if ord(d) == 9 else d
@@ -86,7 +92,8 @@ class TDFile():
                         hits[ch] += 1
         best = ''
         bestc = 0
-        for (ch, count) in hits.iteritems():
+        for ch in hits.keys():
+            count = hits[ch]
             if count > bestc:
                 best = ch
                 bestc = count
