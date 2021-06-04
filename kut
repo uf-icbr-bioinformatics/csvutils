@@ -242,7 +242,6 @@ Filenames: {}
 if __name__ == "__main__":
     K = Kutter()
     if K.parseArgs(sys.argv[1:]):
-        K.describe()
         if K.infiles:
             for filename in K.infiles:
                 with open(filename, "r") as f:

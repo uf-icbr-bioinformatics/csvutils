@@ -15,7 +15,8 @@ import sys
 import csv
 import time
 import curses
-from curses.wrapper import wrapper
+
+_wrapper = curses.wrapper
 
 def writeDelimiter(d):
     x = "t" if ord(d) == 9 else d
@@ -86,7 +87,8 @@ class TDFile():
                         hits[ch] += 1
         best = ''
         bestc = 0
-        for (ch, count) in hits.iteritems():
+        for ch in hits:
+            count = hits[ch]
             if count > bestc:
                 best = ch
                 bestc = count
@@ -348,6 +350,6 @@ class Driver():
 if __name__ == "__main__":
     D = Driver(sys.argv[1:])
     if D.nfiles > 0:
-        wrapper(D.displayAll)
+        _wrapper(D.displayAll)
     else:
        usage()     
