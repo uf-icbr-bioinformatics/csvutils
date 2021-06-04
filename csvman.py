@@ -60,7 +60,7 @@ def toInt(s, warn=False):
         return int(s)
     except ValueError:
         if warn:
-            print "Value '{}' should be a number.".format(s)
+            sys.stderr.write("Value '{}' should be a number.\n".format(s))
         return None
 
 def toFloat(s, warn=False):
@@ -68,7 +68,7 @@ def toFloat(s, warn=False):
         return float(s)
     except ValueError:
         if warn:
-            print "Value '{}' should be a number.".format(s)
+            sys.stderr.write("Value '{}' should be a number.\n".format(s))
         return None
 
 def startAnsi(s, base, color):
@@ -115,7 +115,7 @@ def convertDelimiter(d):
     elif len(d) == 1:
         return d
     else:
-        print "The delimiter should be one of tab, comma, pipe, or a single character."
+        sys.stderr.write("Warning: the delimiter should be one of tab, comma, pipe, or a single character.\n")
         return '\t'
 
 def unconvertDelimiter(d):
@@ -132,7 +132,7 @@ def convertInt(d):
     try:
         return int(d)
     except ValueError:
-        print "The value {} should be a number.".format(d)
+        sys.stderr.write("The value {} should be a number.\n".format(d))
         return None
 
 ### Defaults management
@@ -158,9 +158,9 @@ def showDefaults():
     for k in sorted(defaults):
         dfl = defaults[k]
         startBold(sys.stdout)
-        print k,
+        sys.stdout.write(k)
         endAnsi(sys.stdout)
-        print " - {}: {}".format(dfl[2], unconvertDelimiter(dfl[0]))
+        sys.stdout.write(" - {}: {}\n".format(dfl[2], unconvertDelimiter(dfl[0])))
 
 def askAllDefaults():
     for k in sorted(defaults):
@@ -216,7 +216,7 @@ class Table():
         delimiter = getDefault('delimiter')
         filename = os.path.expanduser(self.filename)
         if not os.path.isfile(filename):
-            print "File `{}' does not exist.".format(filename)
+            sys.stderr.write("File `{}' does not exist.\n".format(filename))
             return None
 
         with open(filename, "r") as f:
@@ -246,22 +246,22 @@ class Table():
         return (self.ncol, self.nrow)
 
     def describe(self):
-        print "Table `{}', {}/{} columns, {}/{} rows.".format(self.filename, len(self.vcols), self.ncol, self.vrow, self.nrow)
+        sys.stdout.write("Table `{}', {}/{} columns, {}/{} rows.\n".format(self.filename, len(self.vcols), self.ncol, self.vrow, self.nrow))
 
     def showColumns(self):
         """Print the names of the columns in this table."""
         for c in self.columns:
             if c[2]:
-                print "{:2}. {}".format(c[0] + 1, c[1])
+                sys.stdout.write("{:2}. {}\n".format(c[0] + 1, c[1]))
             else:
-                print "{:2}, [{}]".format(c[0] + 1, c[1])
+                sys.stdout.write("{:2}, [{}]\n".format(c[0] + 1, c[1]))
                 
     def showVisibleColumns(self):
         """Print the names of the columns in this table."""
         i = 1
         for c in self.vcols:
             if c[2]:
-                print "{:2}. {}".format(i, c[1])
+                sys.stdout.write("{:2}. {}\n".format(i, c[1]))
                 i += 1
 
     def getColumnDesc(self, name):
@@ -299,7 +299,7 @@ cannot be found."""
                 return None
             idx = idx -1
             if idx > self.ncol:
-                print "The current table only has {} columns, but column {} was addressed.".format(self.ncol, idx + 1)
+                sys.stderr.write("The current table only has {} columns, but column {} was addressed.\n".format(self.ncol, idx + 1))
                 return None
             return self.getColumnDescByIdx(idx)
         else:
@@ -465,7 +465,7 @@ class Cmdline():
         else:
             self.aptr += 1
             if warn:
-                print "Error: missing argument for command `{}' at position {}.".format(self.cmd, self.aptr)
+                sys.stderr.write("Error: missing argument for command `{}' at position {}.\n".format(self.cmd, self.aptr))
             return None
 
     def getOptional(self, default, num=False):
@@ -538,7 +538,7 @@ If filename is not specified, the program will open a popup window to select the
         success = table.readFile()
         now = time.clock() - now
         if success:
-            print "`{}' loaded in {} secs.".format(filename, now)
+            sys.stdout.write("`{}' loaded in {} secs.\n".format(filename, now))
             table.idx = self.nextTableIdx
             self.nextTableIdx += 1
             self.tables.append(table)
@@ -566,7 +566,7 @@ List the columns of the current table, or of table `id' if specified."""
 
 List the currently loaded tables. Each table is preceded by its ID number. To switch to a different table, use the '.' command followed by the ID of the table you want to switch to."""
         for t in self.tables:
-            print "{:2}:".format(t.idx),
+            sys.stdout.write("{:2}:\n".format(t.idx),)
             t.describe()
 
     def commandSetCurr(self, cmdline):
@@ -586,7 +586,7 @@ Save the current table to the specified file. If `filename' is not specified, th
             filename = tkFileDialog.asksaveasfilename()
         if filename != None and filename != '':
             self.current.save(filename)
-            print "Current table saved to `{}'.".format(filename)
+            sys.stderr.write("Current table saved to `{}'.\n".format(filename))
 
     def commandSelect(self, cmdline):
         """Usage: select [all] [*] [name1 name2 ...]
@@ -595,7 +595,7 @@ With no arguments, prints the list of currently visible columns. If the first ar
         table = self.current
         firstarg = cmdline.getOptional(None)
         if firstarg == None:
-            print "Visible columns:"
+            sys.stdout.write("Visible columns:\n")
             table.showVisibleColumns()
         elif firstarg == 'all' or firstarg == '*':
             table.vcols = [ce for ce in table.columns]
@@ -607,7 +607,7 @@ With no arguments, prints the list of currently visible columns. If the first ar
                     break
                 wanted.append(w)
             table.selectColumns(wanted)
-        print "{} columns visible.".format(len(table.vcols))
+        sys.stdout.write("{} columns visible.\n".format(len(table.vcols)))
 
     def commandDelete(self, cmdline):
         """Usage: delete [id]
@@ -664,7 +664,7 @@ Filters are applied in AND: if you enter a second filter command, only the visib
         if operator in operatorsTable:
             op = operatorsTable[operator]
         else:
-            print "Unknown operator '{}'.".format(operator)
+            sys.stderr.write("Unknown operator '{}'.\n".format(operator))
             return
         table.filterRows(colidx, op[0], value, numeric=op[1])
         table.describe()
@@ -689,7 +689,7 @@ This command applies the same test performed by 'filter', with the difference th
         if operator in operatorsTable:
             op = operatorsTable[operator]
         else:
-            print "Unknown operator '{}'.".format(operator)
+            sys.stderr.write("Unknown operator '{}'.\n".format(operator))
             return
         table.addRows(colidx, op[0], value, numeric=op[1])
         table.describe()
@@ -712,51 +712,51 @@ If the column contains more than 100 distinct values, the command will stop and 
 
         result = table.uniqueValues(colidx, getDefault('maxunique'))
         if result == None:
-            print "The current column has more than {} unique values. Please select a different column or increase the 'maxunique' default value.".format(100)
+            sys.stderr.write("The current column has more than {} unique values. Please select a different column or increase the 'maxunique' default value.\n".format(100))
         for k in sorted(result):
-            print "{:8} {}".format(result[k], k)
+            sys.stdout.write("{:8} {}\n".format(result[k], k))
 
     def helpOnCommand(self, what):
         cmd = commandTable[what]
         startBold(sys.stdout)
-        print what
+        sys.stdout.write(what)
         endAnsi(sys.stdout)
         startAnsi(sys.stdout, 0, 31)
-        print cmd.__doc__
+        sys.stdout.write(cmd.__doc__)
         endAnsi(sys.stdout)        
-        print
+        sys.stdout.write("\n")
 
     def commandHelp(self, cmdline):
         """Display available commands, or help on a single command.
 
 Use 'help <command> to get help on a command. '?' prints all available commands."""
         if cmdline.getCmd() == '?':
-            print "Available commands:",
+            sys.stdout.write("Available commands:")
             for c in sorted(commandTable):
-                print c,
-            print
+                sys.stdout.write(" " + c)
+            sys.stdout.write("\n")
         elif cmdline.getCmd() == '??':
-            print "Available commands:"
+            sys.stdout.write("Available commands:\n")
             for c in sorted(commandTable):
                 cmd = commandTable[c]
                 doc = cmd.__doc__
                 docl = doc.split("\n", 1)[0]
                 startBold(sys.stdout)
-                print c + ": ",
+                sys.stdout.write(c + ": ")
                 endAnsi(sys.stdout)
-                print docl
+                sys.stdout.write(docl + "\n")
                 #print "  {}: {}".format(c, docl)
         else:
             what = cmdline.getOptional(None)
             if what == None:
-                print "Use 'help <command> to get help on a command. '?' prints all available commands."
+                sys.stdout.write("Use 'help <command> to get help on a command. '?' prints all available commands.\n")
             elif what == '*':
                 for c in sorted(commandTable):
                     self.helpOnCommand(c)
             elif what in commandTable:
                 self.helpOnCommand(what)
             else:
-                print "Command `{}' not recognized.".format(what)
+                sys.stderr.write("Command `{}' not recognized.\n".format(what))
 
 
     def commandReset(self, cmdline):
@@ -785,9 +785,9 @@ If called with a single argument that is the name of a default, the command will
                 askSomeDefaults([what])
             else:
                 setDefault(what, val)
-                print "{} set to {}.".format(what, val)
+                sys.stdout.write("{} set to {}.\n".format(what, val))
         else:
-            print "The first argument should be either '*' or the name of a default. Please use 'default' with no arguments to see the list of valid defaults."
+            sys.stderr.write("The first argument should be either '*' or the name of a default. Please use 'default' with no arguments to see the list of valid defaults.\n")
 
     def REPL(self):
         while self.cont:
@@ -800,9 +800,9 @@ If called with a single argument that is the name of a default, the command will
                         cmd = commandTable[command]
                         cmd(Cmdline(parsed))
                     else:
-                        print "Command `{}' not recognized.".format(command)
+                        sys.stderr.write("Command `{}' not recognized.\n".format(command))
             except EOFError:
-                print
+                sys.stdout.write("\n")
                 self.cont = False
 
 def initTk():
@@ -861,9 +861,10 @@ if __name__=="__main__":
                 'maxunique': [100, convertInt, "Maximum number of distinct values to return for the 'unique' command"]}
 
     startAnsi(sys.stdout, 1, 34)
-    print "CSVmanager, v1.0"
-    print "(c) 2015, A. Riva (ariva@ufl.edu)"
-    print "Use 'help <command> to get help on a command. '?' prints all available commands."
+    sys.stdout.write("""CSVmanager, v1.0"
+(c) 2015, A. Riva (ariva@ufl.edu)
+Use 'help <command> to get help on a command. '?' prints all available commands.
+""")
     endAnsi(sys.stdout)
     mgr.REPL()
 
