@@ -149,7 +149,6 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
 
     def parseArgs(self, args):
         if "-h" in args or "--h" in args:
-            self.usage()
             return False
         prev = ""
         self.columns = []
