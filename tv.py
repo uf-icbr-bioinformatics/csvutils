@@ -356,6 +356,6 @@ class Driver():
 if __name__ == "__main__":
     D = Driver(sys.argv[1:])
     if D.nfiles > 0:
-        _wrapper(D.displayAll)
+        wrapper(D.displayAll)
     else:
        usage()     

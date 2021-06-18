@@ -49,6 +49,9 @@ class Kutter():
     missing = "???"
     ncols = 0
     
+    _colspecs = []
+    _colsfile = ""
+
     def __init__(self):
         self.infiles = []
         self.columns = []
@@ -68,6 +71,7 @@ Options:
 
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -F F         | Like -f, but read wanted columns from file F (one per line).
+ -p           | Use column names (from first row in file) instead of numbers.
  -v           | Reverse mode: print only columns NOT specified by -f or -F.
  -d D         | Set delimiter to D (default: tab).
  -e E         | Set output delimited to E (default: same as -d).
