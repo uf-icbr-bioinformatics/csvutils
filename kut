@@ -48,7 +48,8 @@ class Kutter():
     quotechar = None
     missing = "???"
     ncols = 0
-    
+
+    _namesmode = False
     _colspecs = []
     _colsfile = ""
 
@@ -57,7 +58,7 @@ class Kutter():
         self.columns = []
 
     def usage(self):
-        sys.stdout.write("""kut - spiced-up version of the cut command
+        sys.stdout.write("""kut - spiced-up version of the cut command.
 
 Usage: kut [options] filenames...
 
@@ -71,7 +72,7 @@ Options:
 
  -f C1,...,Cn | Specifies wanted columns. See below for possible values for C.
  -F F         | Like -f, but read wanted columns from file F (one per line).
- -p           | Use column names (from first row in file) instead of numbers.
+ -n           | Use column names (from first row in file) instead of numbers.
  -v           | Reverse mode: print only columns NOT specified by -f or -F.
  -d D         | Set delimiter to D (default: tab).
  -e E         | Set output delimited to E (default: same as -d).
@@ -91,14 +92,25 @@ Note that in a range p-q, p can be larger than q, and that columns
 can be repeated. Also, the -f option can be specified more than once
 for readability. Some examples, assuming that file test.csv has five columns:
 
-kut -f 1,5,3 test.csv   - Columns 1, 5, and 3 in this order
-kut -f 2-4 test.csv     - Columns 2, 3, and 4
-kut -f -2 test.csv      - Columns 1 and 2
-kut -f 2- test.csv      - Columns 2, 3, 4, and 5
-kut -f 3-1 test.csv     - Columns 3, 2, and 1
-kut -f 3-1,2-4 test.csv - Columns 3, 2, 1, 2, 3, and 4.
-kut -f 3-1 -f 2-4 test.csv - Same as previous example.
-kut -f - test.csv       - Columns 5, 4, 3, 2, and 1
+kut -f 1,5,3 test.csv       # Columns 1, 5, and 3 in this order
+kut -f 2-4 test.csv         # Columns 2, 3, and 4
+kut -f -2 test.csv          # Columns 1 and 2
+kut -f 2- test.csv          # Columns 2, 3, 4, and 5
+kut -f 3-1 test.csv         # Columns 3, 2, and 1
+kut -f 3-1,2-4 test.csv     # Columns 3, 2, 1, 2, 3, and 4.
+kut -f 3-1 -f 2-4 test.csv  # Same as previous example.
+kut -f - test.csv           # Columns 5, 4, 3, 2, and 1
+
+If -n is supplied, columns can be specified using names instead of numbers. Column names are
+read from the first line of the file. Column specifications work as described above, except 
+that ranges are expressed using : instead of -. For example, if a file has five columns named
+A, B, C, D, and E respectively:
+
+kut -n -f A,E,C        # Columns A, E, and C in this order
+kut -n -f B-D          # Columns B, C, and D.
+kut -n -f C-A,B-D      # Columns C, B, A, B, C, and D.
+kut -n -f C-A -f B-D   # Same as previous example.
+kut -n -f :            # Columns E, D, C, B, and A.
 
 A delimiter specification (for -d and -e) can be a single character,
 or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
@@ -111,7 +123,7 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
     def parseColumnsFromFile(self, filename):
         with open(filename, "r") as f:
             for line in f:
-                self.parseOneColumn(line)
+                self.parseOneColumn(line.rstrip("\n\r"))
 
     def parseOneColumn(self, w):
         w = w.strip()
@@ -128,18 +140,27 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
             except ValueError:
                 pass
 
+    def parseColIndexes(self):
+        if self._colsfile:
+            self.parseColumnsFromFile(self._colsfile)
+        else:
+            for w in self._colspecs:
+                self.parseOneColumn(w)
+
     def parseArgs(self, args):
         if "-h" in args or "--h" in args:
             self.usage()
             return False
         prev = ""
         self.columns = []
+        self._colspecs = []
         for a in args:
             if prev == "-f":
-                self.parseColumns(a)
+                for w in a.split(","):
+                    self._colspecs.append(w)
                 prev = ""
             elif prev == "-F":
-                self.parseColumnsFromFile(a)
+                self._colsfile = a
                 prev = ""
             elif prev == "-d":
                 self.delimiter = decodeDelimiter(a)
@@ -155,12 +176,21 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
                 prev = ""
             elif a in ["-f", "-F", "-d", "-e", "-q", "-m"]:
                 prev = a
+            elif a == "-n":
+                self._namesmode = True
             elif a == "-v":
                 self.reverse = True
             else:
                 self.infiles.append(a)
         if not self.outdelim:
             self.outdelim = self.delimiter
+            
+        if not self.infiles:
+            self.infiles.append("/dev/stdin")
+
+        if not self._namesmode:
+            self.parseColIndexes()
+
         return True
         
     def describe(self):
@@ -225,18 +255,53 @@ Filenames: {}
             return row[c]
         except IndexError:
             return self.missing
+
+    def getCol(self, name, cols):
+        if name in cols:
+            return cols[name]
+        else:
+            sys.stderr.write("Error: no column called `{}'.\n".format(name))
+            sys.exit(1)
+
+    def parseColNames(self, hdr):
+        cols = {}
+        idx = 0
+        for h in hdr:
+            cols[h] = idx
+            idx += 1
+
+        for spec in self._colspecs:
+            if spec == ":":
+                self.columns.append((-1, 0))
+            elif ":" in spec:
+                parts = spec.split(":")
+                if parts[0]:
+                    col1 = self.getCol(parts[0], cols)
+                else:
+                    col1 = 0
+                if parts[1]:
+                    col2 = self.getCol(parts[1], cols)
+                else:
+                    col2 = -1
+                self.columns.append((col1, col2))
+            else:
+                self.columns.append(self.getCol(spec, cols))
+
     
     def readfile(self, f):
         wcolumns = None
         r = csv.reader(f, delimiter=self.delimiter, quotechar=self.quotechar)
         for row in r:
             if not wcolumns:
+                if self._namesmode:
+                    self.parseColNames(row)
+
                 self.rowlen = len(row)
                 if self.reverse:
                     wcolumns = self.revColumns()
                 else:
                     wcolumns = self.realColumns()
-                # print wcolumns
+
             outrow = [self.safeGetField(row, c) for c in wcolumns]
             try:
                 sys.stdout.write(self.outdelim.join(outrow) + "\n")
@@ -246,11 +311,9 @@ Filenames: {}
 if __name__ == "__main__":
     K = Kutter()
     if K.parseArgs(sys.argv[1:]):
-        if K.infiles:
-            for filename in K.infiles:
-                with open(filename, "r") as f:
-                    K.readfile(f)
-        elif K.columns:
-            K.readfile(sys.stdin)
-        else:
-            K.usage()
+        for filename in K.infiles:
+            K.wcolumns = None
+            with open(filename, "r") as f:
+                K.readfile(f)
+    else:
+        K.usage()
