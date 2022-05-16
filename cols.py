@@ -51,6 +51,8 @@ Options:
   -R             | Assume R-style header (number of fields in header
                    line is one less than the number of fields in the
                    rest of the file).
+  -i             | Interactive mode. Show the contents of each row in
+                   the format: field = value. Assumes first row is header.
 
 """)
 
@@ -80,8 +82,9 @@ class Cols(Script.Script):
                     self.SKIP = a
                 next = ""
             elif next == "-S":
-                self.ROWNUM =self. toInt(a)
+                self.ROWNUM = self.toInt(a)
                 self.FIRSTHDR = True
+                self.MODE = "names"
                 next = ""
             elif next in ["-f", "--fields"]:
                 self.MODE = 'fields'
@@ -102,6 +105,9 @@ class Cols(Script.Script):
             elif a in ['-r', '--raw']:
                 self.MODE = 'names'
                 self.RAW = True
+            elif a == "-i":
+                self.MODE = 'interactive'
+                self.FIRSTHDR = True
             elif a == '-0':
                 self.ZERO = True
             elif a == '-R':
@@ -115,6 +121,7 @@ class Cols(Script.Script):
         row = []
         reader = csv.reader(f, delimiter=self.DELIMITER, quotechar='"')
         next = reader.__next__ if PY3 else reader.next
+        stop = input if PY3 else raw_input
 
         # print(MODE, ROWNUM, DELIMITER, SKIP, FIRSTHDR, RAW)
 
@@ -165,6 +172,16 @@ class Cols(Script.Script):
             for line in reader:
                 sys.stdout.write("{}\t{}\n".format(ln, len(line)))
                 ln += 1
+        elif self.MODE == 'interactive':
+            maxlen = max([len(f) for f in hdr])
+            fmt = "{:" + str(maxlen) + "} = {}\n"
+            ncols = len(hdr)
+            for line in reader:
+                for i in range(ncols):
+                    sys.stdout.write(fmt.format(hdr[i], line[i]))
+                ans = stop()
+                if ans and ans[0] in 'qQ':
+                    break
 
     def doFields(self, hdr, reader):
         columns = []

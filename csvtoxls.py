@@ -18,6 +18,8 @@ import os.path
 import importlib
 import xlsxwriter
 
+PYTHON_VERSION = sys.version_info[0]
+
 try:
   import xlrd
   HAS_XLRD = True
@@ -93,7 +95,7 @@ class Csv():
         if not 0 in self.rowhdr:
             self.rowhdr.append(0)
 
-    def to_worksheet(self, ws):
+    def to_worksheet_py2(self, ws):
         """Copy the contents of tab-delimited file `csvfile' to worksheet `ws', starting at row `firstrow' and column `firstcol'.
 If `firstrowhdr' is True, the cells in the first row will be set to bold. If `firstcolhdr' is True, che cells in the
 first column will be set to bold."""
@@ -122,6 +124,40 @@ first column will be set to bold."""
             finally:
                 f.close()
                 return (maxrow + 1, maxcol + 1)
+        else:
+            sys.stderr.write("Warning: file {} does not exist or is not readable.\n".format(self.csvfile))
+            return (0, 0)
+
+    def to_worksheet(self, ws):
+        """Copy the contents of tab-delimited file `csvfile' to worksheet `ws', starting at row `firstrow' and column `firstcol'.
+If `firstrowhdr' is True, the cells in the first row will be set to bold. If `firstcolhdr' is True, che cells in the
+first column will be set to bold."""
+        global FORMATS
+
+        maxrow = 0
+        maxcol = 0
+        r = 0
+        c = 0
+        #with open(self.csvfile, 'rb') as f:
+        if os.path.isfile(self.csvfile):
+            with open(self.csvfile, 'r') as f:
+                reader = csv.reader(f, delimiter=self.delim)
+                for row in reader:
+                    r += 1
+                    c = 0
+                    if r > maxrow:
+                        maxrow = r
+                    for col in row:
+                        c += 1
+                        if c > maxcol:
+                            maxcol = c
+                        if col.startswith("="):
+                            ws.write_formula(r + self.firstrow, c + self.firstcol, col)
+                        elif (r in self.rowhdr) or (c in self.colhdr):
+                            ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
+                        else:
+                            ws.write(r + self.firstrow, c + self.firstcol, col)
+            return (maxrow + 1, maxcol + 1)
         else:
             sys.stderr.write("Warning: file {} does not exist or is not readable.\n".format(self.csvfile))
             return (0, 0)
@@ -181,7 +217,7 @@ def setupFromCmdline(args):
     quick = False
     c = None
     xlsxfile = None
-    next = ""
+    prev = ""
 
     if '-h' in args:
         usage()
@@ -191,36 +227,35 @@ def setupFromCmdline(args):
 
     for a in args[1:]:
         if a in ['-q', "-quick"]:
-            sys.stderr.write("Quick mode enabled.\n")
             quick = True
         elif a in ["-R", "-firstrowhdr"]:
             setPar(c, 'rowhdr', 0, True)
         elif a == ["-C", "-firstcolhdr"]:
             setPar(c, 'colhdr', 0, True)
         elif a in OPTIONS:
-            next = a
-        elif next in ["-name", "-n"]:
+            prev = a
+        elif prev in ["-name", "-n"]:
             a = validateSheetName(a)
             setPar(c, 'name', a)
-            next = ""
-        elif next == ["-width", "-w"]:
+            prev = ""
+        elif prev == ["-width", "-w"]:
             setPar(c, 'width', int(a))
-            next = ""
-        elif next in ["-delim", "-d"]:
+            prev = ""
+        elif prev in ["-delim", "-d"]:
             setPar(c, 'delim', decodeDelimiter(a))
-            next = ""
-        elif next in ["-fr", "-firstrow"]:
+            prev = ""
+        elif prev in ["-fr", "-firstrow"]:
             setPar(c, 'firstrow', int(a) - 1)
-            next = ""
-        elif next in ["-fc", "-firstcol"]:
+            prev = ""
+        elif prev in ["-fc", "-firstcol"]:
             setPar(c, 'firstcol', int(a) - 1)
-            next = ""
-        elif next in ["-r", "-rowhdr"]:
+            prev = ""
+        elif prev in ["-r", "-rowhdr"]:
             setPar(c, 'rowhdr', int(a) - 1, True)
-            next = ""
-        elif next in ["-c", "-colhdr"]:
+            prev = ""
+        elif prev in ["-c", "-colhdr"]:
             setPar(c, 'colhdr', int(a) - 1, True)
-            next = ""
+            prev = ""
         elif a[0] == '-':
             sys.stderr.write("Unrecognized option: {}\n".format(a))
         elif xlsxfile:
@@ -275,7 +310,7 @@ def version():
 def main(xlsxfile):
     global FORMATS
 
-    sys.stdout.write("Writing XLSX file {}\n".format(xlsxfile))
+    sys.stderr.write("Writing XLSX file {}\n".format(xlsxfile))
     workbook = xlsxwriter.Workbook(xlsxfile, {'strings_to_numbers': True})
     workbook.set_properties({'author': 'A. Riva, ariva@ufl.edu', 'company': 'DiBiG - ICBR Bioinformatics'}) # these should be read from conf or command-line
     FORMATS['bold'] = workbook.add_format({'bold': 1})
@@ -283,13 +318,17 @@ def main(xlsxfile):
     # Loop through all defined Csv objects:
     for c in CSVS:
         worksheet = workbook.add_worksheet(c.name)
-        (nrows, ncols) = c.to_worksheet(worksheet)
+        if PYTHON_VERSION == 2:
+          (nrows, ncols) = c.to_worksheet_py2(worksheet)
+        else:
+          (nrows, ncols) = c.to_worksheet(worksheet)
         if nrows > 0 and ncols > 0:
-            sys.stderr.write("File {} added to workbook: {} rows, {} columns.\n".format(c.csvfile, nrows, ncols))
+            sys.stderr.write("+ File {} added to workbook: {} rows, {} columns.\n".format(c.csvfile, nrows, ncols))
             if c.width:
                 worksheet.set_column(0, ncols, c.width)
 
     workbook.close()
+    sys.stderr.write("XLSX file written.\n")
 
 def csvtoxls_main():
     xlsxfile = setup(sys.argv)

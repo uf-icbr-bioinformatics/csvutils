@@ -87,6 +87,7 @@ Each column specification C can be:
         if p is omitted it defaults to the first column;
         if q is omitted it defaults to the last column in the file (recomputed for each file).
  The string '-', interpreted as all columns in reverse order.
+ An arbitrary string, inserted 'as-is' into the output.
 
 Note that in a range p-q, p can be larger than q, and that columns
 can be repeated. Also, the -f option can be specified more than once
@@ -138,7 +139,7 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
                 x = int(w)
                 self.columns.append(x-1)
             except ValueError:
-                pass
+                self.columns.append(w)
 
     def parseColIndexes(self):
         if self._colsfile:
@@ -156,7 +157,8 @@ or the special strings 'tab' (tab), 'sp' (one space), 'nl' (newline).
         for a in args:
             if prev == "-f":
                 for w in a.split(","):
-                    self._colspecs.append(w)
+                    if w:
+                        self._colspecs.append(w)
                 prev = ""
             elif prev == "-F":
                 self._colsfile = a
@@ -250,6 +252,8 @@ Filenames: {}
         return wcols
 
     def safeGetField(self, row, c):
+        if type(c).__name__ == 'str':
+            return c
         try:
             return row[c]
         except IndexError:
