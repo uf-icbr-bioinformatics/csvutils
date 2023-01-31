@@ -125,7 +125,8 @@ class Colx():
         for i in range(3, idx): # we don't care about 1 and 2
             if not i in multimap:
                 n = 0
-                for (item, count) in self.multidc.iteritems():
+                for item in self.multidc.keys():
+                    count = self.multidc[item]
                     if (count & i) == i:
                         n += 1
                 files = decodeBitmask(multimap, i)
