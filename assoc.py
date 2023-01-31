@@ -4,6 +4,7 @@
 
 import sys
 import csv
+import json
 
 def parseFilename(s):
     p = s.rfind(":")
@@ -24,12 +25,14 @@ def decodeDelimiter(d):
 
 class Assoc(object):
     filename = ""
+    mode = "normal"
     incol = 0
     outcol = None
     delimiter = '\t'
     _missing = '???'
     _preserve = False
     _interactive = False
+    _whole = False
     _data = {}
 
     def __init__(self, args):
@@ -53,24 +56,48 @@ class Assoc(object):
                 prev = ""
             elif a in ["-i", "-o", "-m", "-d"]:
                 prev = a
+            elif a in ["-j", "-J"]:
+                self.mode = a
             elif a == "-p":
                 self._preserve = True
+            elif a == "-w":
+                self._whole = True
             elif a == "-r":
                 self._interactive = True
             else:
-                (f, c) = parseFilename(a)
-                self.filename = f
-                self.incol = c
+                if self.mode == "normal":
+                    (f, c) = parseFilename(a)
+                    self.filename = f
+                    self.incol = c
+                else:
+                    self.filename = a
 
         if not self.outcol:
             self.outcol = self.incol + 1
 
     def readTable(self):
+        src = self.filename
+        if self.mode == "-j":
+            self.readJSONfile()
+        elif self.mode == "-J":
+            self.readJSON()
+            src = "JSON string"
+        else:
+            with open(self.filename, "r") as f:
+                c = csv.reader(f, delimiter=self.delimiter)
+                for line in c:
+                    if self._whole:
+                        self._data[line[self.incol]] = "\t".join(line)
+                    else:
+                        self._data[line[self.incol]] = line[self.outcol]
+        sys.stderr.write("[{} associations read from {}.]\n".format(len(self._data), src))
+
+    def readJSONfile(self):
         with open(self.filename, "r") as f:
-            c = csv.reader(f, delimiter=self.delimiter)
-            for line in c:
-                self._data[line[self.incol]] = line[self.outcol]
-        sys.stderr.write("[{} associations read from {}.]\n".format(len(self._data), self.filename))
+            self._data = json.load(f)
+
+    def readJSON(self):
+        self._data = json.loads(self.filename)
 
     def decode(self):
         try:
@@ -78,7 +105,7 @@ class Assoc(object):
                 line = line.strip()
                 #print "/" + line + "/"
                 if line in self._data:
-                    w = self._data[line]
+                    w = str(self._data[line])
                 elif self._preserve:
                     w = line
                 else:
@@ -93,13 +120,13 @@ class Assoc(object):
     def decode_i(self):
         try:
             while True:
-                line = raw_input()
+                line = input()
                 if not line:
                     return
                 line.strip()
                 #print "/" + line + "/"
                 if line in self._data:
-                    w = self._data[line]
+                    w = str(self._data[line])
                 elif self._preserve:
                     w = line
                 else:
@@ -139,7 +166,10 @@ Options:
          for newline. Default: tab. 
   -p   | Preserve mode: if an input string has no translation, 
          print the string itself instead of the missing tag.
+  -w   | Whole-line mode: output is the whole line associated with the identifier.
   -r   | Interactive mode.
+  -j   | Input file is in JSON format.
+  -J   | First argument is a JSON string.
 
 Examples:
 
