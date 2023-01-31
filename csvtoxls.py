@@ -143,12 +143,10 @@ first column will be set to bold."""
             with open(self.csvfile, 'r') as f:
                 reader = csv.reader(f, delimiter=self.delim)
                 for row in reader:
-                    r += 1
                     c = 0
                     if r > maxrow:
                         maxrow = r
                     for col in row:
-                        c += 1
                         if c > maxcol:
                             maxcol = c
                         if col.startswith("="):
@@ -157,6 +155,8 @@ first column will be set to bold."""
                             ws.write(r + self.firstrow, c + self.firstcol, col, FORMATS['bold'])
                         else:
                             ws.write(r + self.firstrow, c + self.firstcol, col)
+                        c += 1
+                    r += 1
             return (maxrow + 1, maxcol + 1)
         else:
             sys.stderr.write("Warning: file {} does not exist or is not readable.\n".format(self.csvfile))
