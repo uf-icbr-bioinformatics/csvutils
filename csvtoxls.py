@@ -77,6 +77,7 @@ class Csv():
     firstcol = 0
     rowhdr = []
     colhdr = []
+    header = False
 
     def __init__(self, file):
         self.csvfile = file
@@ -141,6 +142,12 @@ first column will be set to bold."""
         #with open(self.csvfile, 'rb') as f:
         if os.path.isfile(self.csvfile):
             with open(self.csvfile, 'r') as f:
+                if self.header:
+                    hc = 0
+                    for ch in self.header:
+                        ws.write(self.firstrow, hc + self.firstcol, ch, FORMATS['bold'])
+                        hc += 1
+                    r += 1
                 reader = csv.reader(f, delimiter=self.delim)
                 for row in reader:
                     c = 0
@@ -213,10 +220,11 @@ def setPar(c, attr, value, append=False):
 def setupFromCmdline(args):
     global CSVS
     OPTIONS = ['-n', '-name', '-w', '-width', '-d', '-delim', '-fr', '-firstrow', '-fc', '-firstcol', '-r', '-rowhdr', '-c', '-colhdr', 
-               '-R', '-firstrowhdr', '-C', '-firstcolhdr']
+               '-R', '-firstrowhdr', '-C', '-firstcolhdr', "-l", "-header"]
     quick = False
     c = None
     xlsxfile = None
+    header = False
     prev = ""
 
     if '-h' in args:
@@ -256,6 +264,9 @@ def setupFromCmdline(args):
         elif prev in ["-c", "-colhdr"]:
             setPar(c, 'colhdr', int(a) - 1, True)
             prev = ""
+        elif prev in ["-l", "-header"]:
+            header = a.split(",")
+            prev = ""
         elif a[0] == '-':
             sys.stderr.write("Unrecognized option: {}\n".format(a))
         elif xlsxfile:
@@ -268,6 +279,9 @@ def setupFromCmdline(args):
     if quick:
         for c in CSVS:
             c.setQuick()
+    if header:
+        for c in CSVS:
+            c.header = header
     return xlsxfile
 
 
@@ -293,6 +307,7 @@ file. Valid options are:
   -c N  | -colhdr N    - format column N of the csv file as header (bold). This option may appear multiple times.
   -R    | -firstrowhdr - equivalent to -rowhdr 1 (first row will be bold).
   -C    | -firstcolhdr - equivalent to -colhdr 1 (first column will be bold).
+  -l L  | -header L    - Set header row to L (comma delimited).
 
 Full documentation and source code are available on GitHub:
 

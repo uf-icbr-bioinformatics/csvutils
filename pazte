@@ -33,7 +33,8 @@ class Reader(object):
         #print("{} / {} / {} / {}".format(self.filename, self.asIs, self.firstCol, self.wantedCol))
         self.stream = open(self.filename, "r")
         self.reader = csv.reader(self.stream, delimiter='\t')
-        nf = len(self.reader.next())
+        r1 = next(self.reader)
+        nf = len(r1)
         self.stream.seek(0)
         if self.asIs:
             self.blank = "\t"*(nf - 1)

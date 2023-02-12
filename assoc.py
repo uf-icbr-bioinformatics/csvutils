@@ -25,6 +25,7 @@ def decodeDelimiter(d):
 
 class Assoc(object):
     filename = ""
+    words = []
     mode = "normal"
     incol = 0
     outcol = None
@@ -36,6 +37,7 @@ class Assoc(object):
     _data = {}
 
     def __init__(self, args):
+        self.words = []
         self._data = {}
         self.parseArgs(args)
 
@@ -64,6 +66,8 @@ class Assoc(object):
                 self._whole = True
             elif a == "-r":
                 self._interactive = True
+            elif self.filename:
+                self.words.append(a)
             else:
                 if self.mode == "normal":
                     (f, c) = parseFilename(a)
@@ -86,10 +90,11 @@ class Assoc(object):
             with open(self.filename, "r") as f:
                 c = csv.reader(f, delimiter=self.delimiter)
                 for line in c:
-                    if self._whole:
-                        self._data[line[self.incol]] = "\t".join(line)
-                    else:
-                        self._data[line[self.incol]] = line[self.outcol]
+                    if len(line) > 1 and line[0][0] != "#":
+                        if self._whole:
+                            self._data[line[self.incol]] = "\t".join(line)
+                        else:
+                            self._data[line[self.incol]] = line[self.outcol]
         sys.stderr.write("[{} associations read from {}.]\n".format(len(self._data), src))
 
     def readJSONfile(self):
@@ -117,6 +122,16 @@ class Assoc(object):
         except KeyboardInterrupt:
             return
 
+    def decode_w(self):
+        for v in self.words:
+            if v in self._data:
+                w = str(self._data[v])
+            elif self._preserve:
+                w = v
+            else:
+                w = self._missing
+            sys.stdout.write(w + "\n")
+
     def decode_i(self):
         try:
             while True:
@@ -142,9 +157,9 @@ class Assoc(object):
         
 
 def usage():
-    sys.stdout.write("""assoc.py - Create association table from tab-delimited file
+    sys.stdout.write("""assoc.py - Create association table from tab-delimited or JSON file.
 
-Usage: assoc.py [options] filename [col]
+Usage: assoc.py [options] filename [words...]
 
 This program reads a tab-delimited file `filename' and builds a table mapping the 
 strings from the input column (by default, the first one) to the corresponding ones
@@ -152,10 +167,18 @@ in the output column (by default the one after the input column, unless a differ
 one is specified with the -o argument). A different input column can be specified
 with the -i argument or by appending :N to the filename, where N is the column number. 
 
-After creating the mapping, the program will read identifiers from standard input and
-write the corresponding identifiers to standard output. If an identifier does not 
-appear in the translation table, the program prints the missing value tag (set with
--m) unless -p is specified, in which case the original identifier is printed unchanged..
+After creating the mapping, the program will read convert the words specified on the 
+command line to the corresponding values in the mapping. If a word does not appear
+in the translation table, the program prints the missing value tag (set with -m) 
+unless -p is specified, in which case the original identifier is printed unchanged.
+If no words are specified, the program reads them from standard input. 
+
+if -j is specified, the mapping file is assumed to be in JSON format. It should contain
+a single, flat dictionary mapping keys to values, e.g.: {{"a": 1, "b": 2}}. If -J is 
+specified, the JSON dictionary is supplied on the command line in place of the filename 
+argument, e.g.:
+
+    assoc.py -J '{{"a": 1, "b": 2}}' other arguments...
 
 Options:
 
@@ -192,5 +215,7 @@ if __name__ == "__main__":
     A.readTable()
     if A._interactive:
         A.decode_i()
+    elif A.words:
+        A.decode_w()
     else:
         A.decode()
