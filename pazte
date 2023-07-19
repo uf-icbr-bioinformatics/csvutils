@@ -21,7 +21,7 @@ class Reader(object):
     asIs = True
     firstCol = False
     wantedCol = -1
-    done = None
+    done = False
     stream = None
     reader = None
     blank = ""
@@ -56,6 +56,7 @@ class Reader(object):
         line = self.stream.readline().rstrip("\r\n")
         if not line:
             self.close()
+            self.done = True
             return self.blank
         if self.asIs:
             return line
@@ -130,9 +131,11 @@ class MultiReader(object):
     def run(self):
         with open(self.outfile, "w") as out:
             while True:
+                line = [ R.getline() for R in self.readers ]
+                #print(line)
+                #print([R.done for R in self.readers])
                 if all([R.done for R in self.readers]):
                     return
-                line = [ R.getline() for R in self.readers ]
                 #print line
                 #raw_input()
                 out.write("\t".join(line) + "\n")
