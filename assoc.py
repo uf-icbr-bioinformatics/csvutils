@@ -11,7 +11,7 @@ def parseFilename(s):
     if p > 0:
         return (s[:p], int(s[p+1:]) - 1)
     else:
-        return (s, 0)
+        return (s, False)
 
 def decodeDelimiter(d):
     if d == 'tab':
@@ -32,6 +32,7 @@ class Assoc(object):
     delimiter = '\t'
     _missing = '???'
     _preserve = False
+    _exclude = False
     _interactive = False
     _whole = False
     _data = {}
@@ -66,13 +67,16 @@ class Assoc(object):
                 self._whole = True
             elif a == "-r":
                 self._interactive = True
+            elif a == "-x":
+                self._exclude = True
             elif self.filename:
                 self.words.append(a)
             else:
                 if self.mode == "normal":
                     (f, c) = parseFilename(a)
                     self.filename = f
-                    self.incol = c
+                    if c:
+                        self.incol = c
                 else:
                     self.filename = a
 
@@ -108,9 +112,13 @@ class Assoc(object):
         try:
             for line in sys.stdin:
                 line = line.strip()
-                #print "/" + line + "/"
+                #print("/" + line + "/")
+                #print(line in self._data)
+                #input()
                 if line in self._data:
                     w = str(self._data[line])
+                elif self._exclude:
+                    continue
                 elif self._preserve:
                     w = line
                 else:
@@ -167,7 +175,7 @@ in the output column (by default the one after the input column, unless a differ
 one is specified with the -o argument). A different input column can be specified
 with the -i argument or by appending :N to the filename, where N is the column number. 
 
-After creating the mapping, the program will read convert the words specified on the 
+After creating the mapping, the program will convert the words specified on the 
 command line to the corresponding values in the mapping. If a word does not appear
 in the translation table, the program prints the missing value tag (set with -m) 
 unless -p is specified, in which case the original identifier is printed unchanged.
@@ -185,10 +193,10 @@ Options:
   -i I | Set input column to I (1-based). Default: {}.
   -o O | Set output column to O (1-based). Default: {}.
   -m M | Set the missing value tag to M. Default: '{}'.
-  -d D | Set delimiter to D. Use 'sp' for space and 'nl'
-         for newline. Default: tab. 
+  -d D | Set delimiter to D. Use 'sp' for space and 'nl' for newline. Default: tab. 
   -p   | Preserve mode: if an input string has no translation, 
          print the string itself instead of the missing tag.
+  -x   | Exclude mode: if an input string has no translation, output nothing.
   -w   | Whole-line mode: output is the whole line associated with the identifier.
   -r   | Interactive mode.
   -j   | Input file is in JSON format.
@@ -198,11 +206,12 @@ Examples:
 
   assoc.py -o 3 file
 
-will map the contents of column 1 to the contents of column 3, while
+will map the contents of column 1 of file to the contents of column 3 of the input, 
+while
 
-  assoc.py file:2 
+  assoc.py file:2 -o 3
 
-will map the contents of column 2 to the contents of column 3.
+will map the contents of column 2 of file to the contents of column 3 of the input.
 
 """.format(Assoc.incol, Assoc.outcol, Assoc._missing))
     sys.exit(0)
