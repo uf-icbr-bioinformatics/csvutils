@@ -323,14 +323,20 @@ Full documentation and source code are available on GitHub:
     else:
       sys.stderr.write("Warning: property specifications should have the form `key=value'.\n")
 
+  def findSheetName(self, name):
+    for n in self.sheetnames:
+      if name.casefold() == n.casefold():
+        return n
+    return False
+
   def validateSheetName(self, name):
-    name = name[:min(len(name), 30)] # excel sheet names can't be longer than 31 characters...
-    if name in self.sheetnames:
+    name = name[:30] # excel sheet names can't be longer than 31 characters...
+    if self.findSheetName(name):
       idx = 1
-      prefix = name[:min(len(name), 27)]
+      prefix = name[:27]
       while True:
         name = "{}_{}".format(prefix, idx)
-        if not name in self.sheetnames:
+        if not self.findSheetName(name):
           break
         idx += 1
     self.sheetnames.append(name)
@@ -345,8 +351,8 @@ Full documentation and source code are available on GitHub:
     # Loop through all defined Csv objects:
     for c in self.csvs:
       c.setQuick(self)
-      c.dump()
-      worksheet = workbook.add_worksheet(c.params['name'])
+      #c.dump()
+      worksheet = workbook.add_worksheet(c.params['name'] if 'name' in c.params else None)
       if PYTHON_VERSION == 2:
         (nrows, ncols) = c.to_worksheet_py2(self, worksheet)
       else:
