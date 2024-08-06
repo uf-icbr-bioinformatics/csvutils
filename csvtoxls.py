@@ -204,6 +204,7 @@ class CSVtoXLSX(object):
   formats = {}
   properties = {'comments': 'Created with csvtoxls.py, https://github.com/uf-icbr-bioinformatics/csvutils'}
   params = {'quick': False, 'header': False, 'delim': '\t', 'width': 18, 'firstrow': 0, 'firstcol': 0, 'rowhdr': -1, 'colhdr': -1}
+  toc = False
   _current = None
 
   def setPar(self, key, value):
@@ -244,6 +245,7 @@ F indicates options that can only be specified after a csv file and apply to tha
  Type | Short | Long          | Description 
 ------|-------|---------------|-----------------------------------------------------------
   W   | -p P  | --property P  | set a worksheet property (see below).
+  W   | -T    | --toc         | Add table of contents as first sheet.
   L   | -n S  | --name S      | set the sheet name to S.
   GL  | -q    | --quick       | quick mode: sets sheet name to filename, adds -firstrowhdr.
   GL  | -d D  | --delim D     | file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
@@ -298,6 +300,8 @@ Full documentation and source code are available on GitHub:
         self.setPar('firstcolhdr', True)
       elif a in OPTIONS:
         prev = OPTIONS[a]
+      elif a == "-T":
+        self.toc = True
       elif a[0] == '-':
         sys.stderr.write("Warning: unrecognized option `{}'.\n".format(a))
       elif self.xlsxfile is None:
@@ -342,15 +346,34 @@ Full documentation and source code are available on GitHub:
     self.sheetnames.append(name)
     return name
 
+  def make_toc(self, wb):
+    fmt = wb.get_default_url_format()
+    toc = wb.add_worksheet("Contents")
+    toc.write(0, 0, "Table of contents", self.formats['bold'])
+
+    r = 2
+    for c in self.csvs:
+      href = 'internal:{}!A1'.format(c.params['name'])
+      sys.stderr.write(href + "\n")
+      toc.write_url(r, 0, href)
+      toc.write(r, 0, c.params['name'], fmt)
+      r += 1
+    sys.stderr.write("+ Table of contents added to workbook.\n")
+  
   def run(self):
     sys.stderr.write("Writing XLSX file {}\n".format(self.xlsxfile))
     workbook = xlsxwriter.Workbook(self.xlsxfile, {'strings_to_numbers': True})
     workbook.set_properties(self.properties)
     self.formats['bold'] = workbook.add_format({'bold': 1})
 
-    # Loop through all defined Csv objects:
     for c in self.csvs:
       c.setQuick(self)
+
+    if self.toc:
+      self.make_toc(workbook)
+    
+    # Loop through all defined Csv objects:
+    for c in self.csvs:
       #c.dump()
       worksheet = workbook.add_worksheet(c.params['name'] if 'name' in c.params else None)
       if PYTHON_VERSION == 2:
