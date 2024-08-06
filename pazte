@@ -129,7 +129,8 @@ class MultiReader(object):
         return self.readers
 
     def run(self):
-        with open(self.outfile, "w") as out:
+        mode = "a" if self.outfile == "/dev/stdout" else "w"
+        with open(self.outfile, mode) as out:
             while True:
                 line = [ R.getline() for R in self.readers ]
                 #print(line)
@@ -160,7 +161,7 @@ Examples:
 
   pazte -c 3 f1 f2      Output the third column of f1 and f2.
 
-  pazte -F -c 3 f1 f2   Output the first and third columns of f1 followed bt the third
+  pazte -F -c 3 f1 f2   Output the first and third columns of f1 followed by the third
                         column of f2.
 
 """)
