@@ -30,6 +30,7 @@ class Assoc(object):
     incol = 0
     outcol = None
     delimiter = '\t'
+    infile = None
     _missing = '???'
     _preserve = False
     _exclude = False
@@ -57,7 +58,10 @@ class Assoc(object):
             elif prev == "-d":
                 self.delimiter = decodeDelimiter(a)
                 prev = ""
-            elif a in ["-i", "-o", "-m", "-d"]:
+            elif prev == "-f":
+                self.infile = a
+                prev = ""
+            elif a in ["-i", "-o", "-m", "-d", "-f"]:
                 prev = a
             elif a in ["-j", "-J"]:
                 self.mode = a
@@ -162,8 +166,32 @@ class Assoc(object):
             return
         except KeyboardInterrupt:
             return
-        
 
+    def decode_f(self):
+        with open(self.infile, "r") as f:
+            c = csv.reader(f, delimiter=self.delimiter)
+            for row in c:
+                key = row[0]
+                if key in self._data:
+                    w = str(self._data[key])
+                elif self._preserve:
+                    w = key
+                else:
+                    w = self._missing
+                sys.stdout.write(self.delimiter.join(row) + self.delimiter + w + "\n")
+        
+    def run(self):
+        self.readTable()
+        if self.infile:
+            self.decode_f()
+        elif self._interactive:
+            self.decode_i()
+        elif self.words:
+            self.decode_w()
+        else:
+            self.decode()
+
+        
 def usage():
     sys.stdout.write("""assoc.py - Create association table from tab-delimited or JSON file.
 
@@ -221,10 +249,4 @@ if __name__ == "__main__":
     if len(args) == 0 or "-h" in args or "--help" in args:
         usage()
     A = Assoc(args)
-    A.readTable()
-    if A._interactive:
-        A.decode_i()
-    elif A.words:
-        A.decode_w()
-    else:
-        A.decode()
+    A.run()
