@@ -240,13 +240,13 @@ The csv file name may be followed by one or more options, that apply only to tha
 
 In the following list, W indicates options that apply to the whole worksheet; G indicates
 global options, that can be specified before the first csv file and apply to all csv files;
-F indicates options that can only be specified after a csv file and apply to that file only.
+L indicates options that can only be specified after a csv file and apply to that file only.
 
  Type | Short | Long          | Description 
 ------|-------|---------------|-----------------------------------------------------------
   W   | -p P  | --property P  | set a worksheet property (see below).
   W   | -T    | --toc         | Add table of contents as first sheet.
-  L   | -n S  | --name S      | set the sheet name to S.
+  L   | -n S  | --name S      | set the sheet name to S (note: sheet names are limited to 32 characters)
   GL  | -q    | --quick       | quick mode: sets sheet name to filename, adds -firstrowhdr.
   GL  | -d D  | --delim D     | file uses delimiter D. Possible values are: 'tab', 'space', or a single character (default: tab).
   GL  | -w N  | --width N     | set the width of all columns to N.
@@ -267,7 +267,8 @@ Full documentation and source code are available on GitHub:
 
   https://github.com/uf-icbr-bioinformatics/csvutils
 
-(c) 2014-2023, A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
+(c) 2014-2023  A. Riva, DiBiG, ICBR Bioinformatics, University of Florida
+(c) 2024-      A. Riva, National Facility for Data Handling and Analysis, Human Technopole
 
 """.format(prog, prog, ", ".join(PROPERTIES)))
     return False
